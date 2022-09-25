@@ -576,7 +576,7 @@ clear_screens ()
 int
 draw_vert_line (int x)
 {
-     unsigned char buf[SCROLL_Y_DIM]; /* buffer for graphical image of row */
+     unsigned char buf[SCROLL_Y_DIM]; /* buffer for graphical image of column */
     unsigned char* addr;             /* address of first pixel in build    */
    				     /*     buffer (without plane offset)  */
     int p_off;                       /* offset of plane of first pixel     */
@@ -596,17 +596,13 @@ draw_vert_line (int x)
     addr = img3 + (x >> 2) + show_y * SCROLL_X_WIDTH;
 
     /* Calculate plane offset of first pixel. */
-    p_off = (3 - (x & 3));
+    p_off = 3 - (x);
 
     /* Copy image data into appropriate planes in build buffer. */
     for (i = 0; i < SCROLL_X_DIM; i++) {
-        addr[p_off * SCROLL_SIZE] = buf[i];
-	if (--p_off < 0) {
-	    p_off = 3;
+        addr[p_off * SCROLL_SIZE/2] = buf[i];
 	    addr++;
 	}
-    }
-
     /* Return success. */
     return 0;
 }
