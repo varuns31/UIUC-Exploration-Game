@@ -248,6 +248,7 @@ game_loop ()
 	}
 
 	show_screen ();
+	show_status_bar();
 
 	/*
 	 * Wait for tick.  The tick defines the basic timing of our
