@@ -72,6 +72,8 @@
 #define SCROLL_SIZE     (SCROLL_X_WIDTH * SCROLL_Y_DIM)
 #define SCREEN_SIZE	(SCROLL_SIZE * 4 + 1)
 #define BUILD_BUF_SIZE  (SCREEN_SIZE + 20000) 
+#define STATUSBAR_SIZE	((SCROLL_X_WIDTH * 18) * 4 + 1)
+#define STATUSBAR_BUF_SIZE (STATUSBAR_SIZE + 20000)
 #define BUILD_BASE_INIT ((BUILD_BUF_SIZE - SCREEN_SIZE) / 2)
 
 /* Mode X and general VGA parameters */
@@ -181,6 +183,8 @@ static void copy_image (unsigned char* img, unsigned short scr_addr);
 static unsigned char build[BUILD_BUF_SIZE + 2 * MEM_FENCE_WIDTH];
 static int img3_off;		    /* offset of upper left pixel   */
 static unsigned char* img3;	    /* pointer to upper left pixel  */
+static int img4_off;
+static unsigned char* img4;
 static int show_x, show_y;          /* logical view coordinates     */
 
 /* displayed video memory variables */
