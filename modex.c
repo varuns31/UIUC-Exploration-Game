@@ -73,7 +73,7 @@
 #define SCREEN_SIZE	(SCROLL_SIZE * 4 + 1)
 #define BUILD_BUF_SIZE  (SCREEN_SIZE + 20000) 
 #define STATUSBAR_SIZE	((SCROLL_X_WIDTH * 18) * 4 + 1)
-#define STATUSBAR_PLANE_SIZE	((SCROLL_X_WIDTH * 18) / 4)
+#define STATUSBAR_PLANE_SIZE	((SCROLL_X_DIM * 18) / 4)
 #define STATUSBAR_BUF_SIZE (STATUSBAR_SIZE + 20000)
 #define BUILD_BASE_INIT ((BUILD_BUF_SIZE - SCREEN_SIZE) / 2)
 
@@ -1020,13 +1020,41 @@ copy_image (unsigned char* img, unsigned short scr_addr)
      */
     asm volatile (
         "cld                                                 ;"
-       	"movl $16000,%%ecx                                   ;"
+       	"movl $14560,%%ecx                                   ;" //change from 16000 to 14560 because screen size has changed.
        	"rep movsb    # copy ECX bytes from M[ESI] to M[EDI]  "
       : /* no outputs */
       : "S" (img), "D" (mem_image + scr_addr) 
       : "eax", "ecx", "memory"
     );
 }
+/*
+ * copy_status_bar
+ *   DESCRIPTION: Copy one plane of a screen from the build buffer to the 
+ *                video memory.
+ *   INPUTS: img -- a pointer to a single screen plane in the build buffer
+ *           scr_addr -- the destination offset in video memory
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: copies a plane from the build buffer to video memory
+ */   
+static void
+copy_status_bar (unsigned char* img, unsigned short scr_addr)
+{
+    /* 
+     * memcpy is actually probably good enough here, and is usually
+     * implemented using ISA-specific features like those below,
+     * but the code here provides an example of x86 string moves
+     */
+    asm volatile (
+        "cld                                                 ;"
+       	"movl $1440,%%ecx                                   ;" 
+       	"rep movsb    # copy ECX bytes from M[ESI] to M[EDI]  "
+      : /* no outputs */
+      : "S" (img), "D" (mem_image + scr_addr) 
+      : "eax", "ecx", "memory"
+    );
+}
+
 
 
 #if defined(TEXT_RESTORE_PROGRAM)
@@ -1060,35 +1088,38 @@ main ()
 
 #endif
 
-unsigned char status_buffer[3][STATUSBAR_PLANE_SIZE];
-unsigned char palletecoloraddr[3]={0x00, 0x15, 0x2A};
+unsigned char status_buffer[4][STATUSBAR_PLANE_SIZE];
 void
 show_status_bar ()
 {
     unsigned char* addr;  /* source address for copy             */
     int p_off;            /* plane offset of first display plane */
     int i;		  /* loop index over video planes        */
+    int j;
 
     for(i=0;i<STATUSBAR_PLANE_SIZE;i++)
     {
-        status_buffer[0][i]=50;
+        for(j=0;j<4;j++)
+        {
+            status_buffer[j][i]=50;
+        }
     }
     /* 
      * Calculate offset of build buffer plane to be mapped into plane 0 
      * of display.
      */
-    p_off = (3 - (show_x & 3));
 
     /* Switch to the other target screen in video memory. */
-    statusbar_img ^=0x4000;
-    char* write_addr = statusbar_img^0x4000;
-
     /* Calculate the source address. */
 
     /* Draw to each plane in the video memory. */
-	SET_WRITE_MASK (1 << (8));
-	copy_image(status_buffer[0],write_addr);
-   
+    for(i=0;i<4;i++)
+    {
+        SET_WRITE_MASK (1 << (i+8));
+	    copy_status_bar(status_buffer[i],statusbar_img);
+    }
+
+
     /* 
      * Change the VGA registers to point the top left of the screen
      * to the video memory that we just filled.
