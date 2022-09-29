@@ -1081,13 +1081,13 @@ show_status_bar ()
 
     /* Switch to the other target screen in video memory. */
     statusbar_img ^=0x4000;
-    char* write_addr = (mem_image + (target_img^0x4000));
+    char* write_addr = statusbar_img^0x4000;
 
     /* Calculate the source address. */
 
     /* Draw to each plane in the video memory. */
 	SET_WRITE_MASK (1 << (8));
-	memcpy(write_addr,status_buffer[0],STATUSBAR_PLANE_SIZE);
+	copy_image(status_buffer[0],write_addr);
    
     /* 
      * Change the VGA registers to point the top left of the screen
