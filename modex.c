@@ -73,6 +73,7 @@
 #define SCREEN_SIZE	(SCROLL_SIZE * 4 + 1)
 #define BUILD_BUF_SIZE  (SCREEN_SIZE + 20000) 
 #define STATUSBAR_SIZE	((SCROLL_X_WIDTH * 18) * 4 + 1)
+#define STATUSBAR_PLANE_SIZE	((SCROLL_X_WIDTH * 18) / 4)
 #define STATUSBAR_BUF_SIZE (STATUSBAR_SIZE + 20000)
 #define BUILD_BASE_INIT ((BUILD_BUF_SIZE - SCREEN_SIZE) / 2)
 
@@ -200,7 +201,6 @@ static unsigned short statusbar_img;
  */
 static void (*horiz_line_fn) (int, int, unsigned char[SCROLL_X_DIM]);
 static void (*vert_line_fn) (int, int, unsigned char[SCROLL_Y_DIM]);
-	
 
 /* 
  * macro used to target a specific video plane or planes when writing
@@ -1060,6 +1060,7 @@ main ()
 
 #endif
 
+unsigned char status_buffer[3][STATUSBAR_PLANE_SIZE];
 unsigned char palletecoloraddr[3]={0x00, 0x15, 0x2A};
 void
 show_status_bar ()
@@ -1067,26 +1068,31 @@ show_status_bar ()
     unsigned char* addr;  /* source address for copy             */
     int p_off;            /* plane offset of first display plane */
     int i;		  /* loop index over video planes        */
+
+    for(i=0;i<STATUSBAR_PLANE_SIZE;i++)
+    {
+        status_buffer[0][i]=50;
+    }
     /* 
      * Calculate offset of build buffer plane to be mapped into plane 0 
      * of display.
      */
     p_off = (3 - (show_x & 3));
+
     /* Switch to the other target screen in video memory. */
-    statusbar_img ^= 0x4000;
-    addr=palletecoloraddr;
+    statusbar_img ^=0x4000;
+    char* write_addr = (mem_image + (target_img^0x4000));
+
+    /* Calculate the source address. */
+
     /* Draw to each plane in the video memory. */
-     for (i = 0; i < 4; i++)
-     {
-	SET_WRITE_MASK (1 << (i + 8));
-    copy_image(addr,statusbar_img);
-     }
- /* }
+	SET_WRITE_MASK (1 << (8));
+	memcpy(write_addr,status_buffer[0],STATUSBAR_PLANE_SIZE);
+   
+    /* 
      * Change the VGA registers to point the top left of the screen
      * to the video memory that we just filled.
      */
-    OUTW (0x03D4, (statusbar_img & 0xFF00) | 0x0C);
-    OUTW (0x03D4, ((statusbar_img & 0x00FF) << 8) | 0x0D);
 }
 // void show_status_bar () {
 //     unsigned char* addr;  /* source address for copy             */
