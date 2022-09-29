@@ -186,6 +186,7 @@ static int show_x, show_y;          /* logical view coordinates     */
 /* displayed video memory variables */
 static unsigned char* mem_image;    /* pointer to start of video memory */
 static unsigned short target_img;   /* offset of displayed screen image */
+static unsigned short statusbar_img;
 
 
 /* 
@@ -308,6 +309,7 @@ set_mode_X (void (*horiz_fill_fn) (int, int, unsigned char[SCROLL_X_DIM]),
 
     /* One display page goes at the start of video memory. */
     target_img = 5760; 
+    statusbar_img=0;
 
     /* Map video memory and obtain permission for VGA port access. */
     if (open_memory_and_ports () == -1)
@@ -1066,20 +1068,35 @@ show_status_bar ()
      * of display.
      */
     p_off = (3 - (show_x & 3));
-
     /* Switch to the other target screen in video memory. */
-    target_img =0;
+    statusbar_img ^= 0x4000;
     addr=palletecoloraddr;
     /* Draw to each plane in the video memory. */
      for (i = 0; i < 4; i++)
      {
 	SET_WRITE_MASK (1 << (i + 8));
-    copy_image(addr,target_img);
+    copy_image(addr,statusbar_img);
      }
  /* }
      * Change the VGA registers to point the top left of the screen
      * to the video memory that we just filled.
      */
-    OUTW (0x03D4, (target_img & 0xFF00) | 0x0C);
-    OUTW (0x03D4, ((target_img & 0x00FF) << 8) | 0x0D);
+    OUTW (0x03D4, (statusbar_img & 0xFF00) | 0x0C);
+    OUTW (0x03D4, ((statusbar_img & 0x00FF) << 8) | 0x0D);
 }
+// void show_status_bar () {
+//     unsigned char* addr;  /* source address for copy             */
+//     int p_off;            /* plane offset of first display plane */
+//     int i;		  /* loop index over video planes        */
+//     /* 
+//      * Calculate offset of build buffer plane to be mapped into plane 0 
+//      * of display.
+//      */
+//     p_off = (3 - (show_x & 3));
+
+//     /* Draw to each plane in the video memory. */
+//     for (i = 0; i < 4; i++) {
+//         SET_WRITE_MASK (1 << (i + 8));
+//         set_color();
+//     }
+// }
