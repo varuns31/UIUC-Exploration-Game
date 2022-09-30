@@ -1101,7 +1101,7 @@ show_status_bar ()
             status_buffer[j][i]=50;
         }
     }
-    inset_char_in_buffer(status_buffer);
+    write_string(status_buffer,"abcd",0);
     /* 
      * Calculate offset of build buffer plane to be mapped into plane 0 
      * of display.

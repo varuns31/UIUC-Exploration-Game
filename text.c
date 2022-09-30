@@ -47,6 +47,15 @@
  * Each character is 8x16 pixels and occupies two lines in the table below.
  * Each byte represents a single bitmapped line of a single character.
  */
+int write_string(char status_buffer[4][1440],char to_write[],int position)
+{
+    int i;
+    int length=sizeof to_write;
+    for(i=0;i<length;i++)
+    {
+        inset_char_in_buffer(status_buffer,position+(2*i),to_write[i]);
+    }
+}
 void inset_char_in_buffer(char status_buffer[4][1440],int position,int ascii)
 {
     int i,j;
@@ -63,6 +72,33 @@ void inset_char_in_buffer(char status_buffer[4][1440],int position,int ascii)
             if((temp & 1)==1)
             {
                 status_buffer[l][i]=90;
+            }
+            l++;
+            if(l==4)
+            {
+                l=0;
+                i++;
+            }
+        }
+    }
+
+}
+void remove_char_from_buffer(char status_buffer[4][1440],int position,int ascii)
+{
+    int i,j;
+    int k=0;
+    int l=0;
+    char a;
+    for(j=0;j<16;j++)
+    {
+        i=80*(j+1)+position;
+        a=font_data[ascii][j];
+        for(k=0;k<8;k++)
+        {
+            int temp=((a)>>(7-k));
+            if((temp & 1)==1)
+            {
+                status_buffer[l][i]=50;
             }
             l++;
             if(l==4)
