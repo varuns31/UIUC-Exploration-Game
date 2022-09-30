@@ -49,11 +49,27 @@
  */
 int write_string(char status_buffer[4][1440],char to_write[],int position)
 {
-    int i;
-    int length=sizeof to_write;
+    int i,j;
+    int length;
+    for(j=0;to_write[j]!=NULL;j++)
+    {
+
+    }
+    length=j;
     for(i=0;i<length;i++)
     {
         inset_char_in_buffer(status_buffer,position+(2*i),to_write[i]);
+    }
+}
+void clear_status_bar(char status_buffer[4][1440])
+{
+    int i,j;
+    for(i=0;i<4;i++)
+    {
+        for(j=0;j<1440;j++)
+        {
+            status_buffer[i][j]=50;
+        }
     }
 }
 void inset_char_in_buffer(char status_buffer[4][1440],int position,int ascii)
@@ -71,7 +87,7 @@ void inset_char_in_buffer(char status_buffer[4][1440],int position,int ascii)
             int temp=((a)>>(7-k));
             if((temp & 1)==1)
             {
-                status_buffer[l][i]=90;
+                status_buffer[l][i]=0;
             }
             l++;
             if(l==4)

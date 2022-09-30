@@ -241,14 +241,14 @@ game_loop ()
 	    prep_room (game_info.where);
 
 	    /* Draw the room (calls show. */
+	
 	    redraw_room ();
 
 	    /* Only draw once on entry. */
 	    enter_room = 0;
 	}
-
 	show_screen ();
-	show_status_bar();
+	show_status_bar_2(room_name(game_info.where));
 
 	/*
 	 * Wait for tick.  The tick defines the basic timing of our

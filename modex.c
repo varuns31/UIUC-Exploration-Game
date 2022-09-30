@@ -190,7 +190,7 @@ static int show_x, show_y;          /* logical view coordinates     */
 static unsigned char* mem_image;    /* pointer to start of video memory */
 static unsigned short target_img;   /* offset of displayed screen image */
 static unsigned short statusbar_img;
-unsigned char status_buffer[4][STATUSBAR_PLANE_SIZE]; //Status bar buffer
+unsigned char status_buffer[4][STATUSBAR_PLANE_SIZE];
 
 
 /* 
@@ -1101,7 +1101,44 @@ show_status_bar ()
             status_buffer[j][i]=50;
         }
     }
-    write_string(status_buffer,"abcd",0);
+    //write_string(status_buffer,"abcd",0);
+    /* 
+     * Calculate offset of build buffer plane to be mapped into plane 0 
+     * of display.
+     */
+
+    /* Switch to the other target screen in video memory. */
+    /* Calculate the source address. */
+
+    /* Draw to each plane in the video memory. */
+    for(i=0;i<4;i++)
+    {
+        SET_WRITE_MASK (1 << (i+8));
+	    copy_status_bar(status_buffer[i],statusbar_img);
+    }
+
+
+    /* 
+     * Change the VGA registers to point the top left of the screen
+     * to the video memory that we just filled.
+     */
+}
+void
+show_status_bar_2 (char abc[])
+{
+
+    int i;		  /* loop index over video planes        */
+    int j;
+
+    for(i=0;i<STATUSBAR_PLANE_SIZE;i++)
+    {
+        for(j=0;j<4;j++)
+        {
+            status_buffer[j][i]=50;
+        }
+    }
+    
+    write_string(status_buffer,abc,0);
     /* 
      * Calculate offset of build buffer plane to be mapped into plane 0 
      * of display.
