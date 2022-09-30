@@ -184,14 +184,13 @@ static void copy_image (unsigned char* img, unsigned short scr_addr);
 static unsigned char build[BUILD_BUF_SIZE + 2 * MEM_FENCE_WIDTH];
 static int img3_off;		    /* offset of upper left pixel   */
 static unsigned char* img3;	    /* pointer to upper left pixel  */
-static int img4_off;
-static unsigned char* img4;
 static int show_x, show_y;          /* logical view coordinates     */
 
 /* displayed video memory variables */
 static unsigned char* mem_image;    /* pointer to start of video memory */
 static unsigned short target_img;   /* offset of displayed screen image */
 static unsigned short statusbar_img;
+unsigned char status_buffer[4][STATUSBAR_PLANE_SIZE]; //Status bar buffer
 
 
 /* 
@@ -1088,12 +1087,10 @@ main ()
 
 #endif
 
-unsigned char status_buffer[4][STATUSBAR_PLANE_SIZE];
 void
 show_status_bar ()
 {
-    unsigned char* addr;  /* source address for copy             */
-    int p_off;            /* plane offset of first display plane */
+
     int i;		  /* loop index over video planes        */
     int j;
 
@@ -1104,6 +1101,7 @@ show_status_bar ()
             status_buffer[j][i]=50;
         }
     }
+    inset_char_in_buffer(status_buffer);
     /* 
      * Calculate offset of build buffer plane to be mapped into plane 0 
      * of display.
