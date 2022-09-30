@@ -45,5 +45,6 @@ extern unsigned char font_data[256][16];
 extern void inset_char_in_buffer(char status_buffer[4][1440],int position,int ascii);
 extern void remove_char_from_buffer(char status_buffer[4][1440],int position,int ascii);
 extern void clear_status_bar(char status_buffer[4][1440]);
-extern int write_string(char to_write[],int position);
+extern void write_string(char to_write[],int position);
+extern void write_typed_string(char to_write[]);
 #endif /* TEXT_H */

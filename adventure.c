@@ -167,6 +167,7 @@ static game_info_t game_info; /* game information */
  */
 static pthread_t status_thread_id;
 static pthread_mutex_t msg_lock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t buf_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t  msg_cv = PTHREAD_COND_INITIALIZER;
 static char status_msg[STATUS_MSG_LEN + 1] = {'\0'};
 
@@ -246,22 +247,23 @@ game_loop ()
 	    /* Draw the room (calls show. */
 	
 	    redraw_room ();
-		//show_status_bar_2(room_name(game_info.where),get_typed_command());
+		//show_status_bar(room_name(game_info.where),get_typed_command());
 
 	    /* Only draw once on entry. */
 	    enter_room = 0;
 	}
+	(void)pthread_mutex_lock (&msg_lock);
 	if(status_msg[0]!='\0') {
-		(void)pthread_mutex_lock (&msg_lock);
-		show_status_bar_2(status_msg,"\0");
+		show_status_bar("\0","\0",status_msg);
 		(void)pthread_mutex_unlock (&msg_lock);
 	} 
 	else{
-		show_status_bar_2(room_name(game_info.where),get_typed_command());
+		(void)pthread_mutex_unlock (&msg_lock);
+		(void)pthread_mutex_lock (&buf_lock);
+		show_status_bar(room_name(game_info.where),get_typed_command(),"\0");
+		(void)pthread_mutex_unlock (&buf_lock);
 	}
 	show_screen ();
-	
-	//show_status_bar_2(get_typed_command());
 
 	/*
 	 * Wait for tick.  The tick defines the basic timing of our
@@ -655,7 +657,7 @@ status_thread (void* ignore)
 	while ('\0' == status_msg[0]) {
 	    pthread_cond_wait (&msg_cv, &msg_lock);
 	}
-	//show_status_bar_2(status_msg,"\0");
+	//show_status_bar(status_msg,"\0");
 	/* 
 	 * A message is present: if we stop before the timeout
 	 * passes, assume that a new one has been posted; if the

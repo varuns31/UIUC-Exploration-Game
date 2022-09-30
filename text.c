@@ -50,7 +50,7 @@
 #define STATUSBAR_PLANE_SIZE	((320 * 18) / 4)
 extern unsigned char status_buffer[4][STATUSBAR_PLANE_SIZE];
 
-int write_string(char to_write[],int position)
+void write_string(char to_write[],int position)
 {
     int i,j;
     int length;
@@ -64,7 +64,7 @@ int write_string(char to_write[],int position)
         inset_char_in_buffer(status_buffer,position+(2*i),to_write[i]);
     }
 }
-int write_typed_string(char to_write[])
+void write_typed_string(char to_write[])
 {
     int i,j,position;
     int length;

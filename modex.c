@@ -1088,7 +1088,7 @@ main ()
 #endif
 
 void
-show_status_bar_2 (char abc[],char abc2[])
+show_status_bar (char abc[],char abc2[],char abc3[])
 {
 
     int i;		  /* loop index over video planes        */
@@ -1102,9 +1102,21 @@ show_status_bar_2 (char abc[],char abc2[])
         }
     }
     
-    write_string(abc,0);
-    //strcat(abc2,"_");
-    write_typed_string(abc2);
+    if(abc3[0]=='\0')
+    {
+        write_string(abc,0);
+        write_typed_string(abc2);
+    }
+    else
+    {
+        int j;
+        for(j=0;abc3[j]!=NULL;j++)
+        {
+
+        }
+        int pos=(80-j)/4;
+        write_string(abc3,pos);
+    }
     //write_typed_string("we will rock you");
     //inset_char_in_buffer(status_buffer,80,70);
     /* 
