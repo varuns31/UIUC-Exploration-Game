@@ -47,7 +47,7 @@
  * Each character is 8x16 pixels and occupies two lines in the table below.
  * Each byte represents a single bitmapped line of a single character.
  */
-void inset_char_in_buffer(char status_buffer[4][1440])
+void inset_char_in_buffer(char status_buffer[4][1440],int position,int ascii)
 {
     int i,j;
     int k=0;
@@ -55,8 +55,8 @@ void inset_char_in_buffer(char status_buffer[4][1440])
     char a;
     for(j=0;j<16;j++)
     {
-        i=80*(j+1);
-        a=font_data[70][j];
+        i=80*(j+1)+position;
+        a=font_data[ascii][j];
         for(k=0;k<8;k++)
         {
             int temp=((a)>>(7-k));
