@@ -60,7 +60,7 @@
 #define SCROLL_X_DIM	IMAGE_X_DIM                /* full image width      */
 #define SCROLL_Y_DIM    IMAGE_Y_DIM                /* full image height      */
 #define SCROLL_X_WIDTH  (IMAGE_X_DIM / 4)          /* addresses (bytes)     */
-#define STATUSBAR_PLANE_SIZE	((SCROLL_X_DIM * 18) / 4)
+#define STATUSBAR_PLANE_SIZE	((SCROLL_X_DIM * 18) / 4) //status bar size of each plane
 
 extern unsigned char status_buffer[4][STATUSBAR_PLANE_SIZE]; //Status bar buffer
 

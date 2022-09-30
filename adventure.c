@@ -252,6 +252,7 @@ game_loop ()
 	    /* Only draw once on entry. */
 	    enter_room = 0;
 	}
+	//locking the access of status_msg
 	(void)pthread_mutex_lock (&msg_lock);
 	if(status_msg[0]!='\0') {
 		show_status_bar("\0","\0",status_msg);
@@ -259,7 +260,9 @@ game_loop ()
 	} 
 	else{
 		(void)pthread_mutex_unlock (&msg_lock);
+		//unlock if status_msg value didn't change
 		(void)pthread_mutex_lock (&buf_lock);
+		//lock while filling status_bar buffer to make it synchronous
 		show_status_bar(room_name(game_info.where),get_typed_command(),"\0");
 		(void)pthread_mutex_unlock (&buf_lock);
 	}

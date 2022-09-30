@@ -42,9 +42,10 @@
 
 /* Standard VGA text font. */
 extern unsigned char font_data[256][16];
+//insert character in buffer based on position
 extern void inset_char_in_buffer(char status_buffer[4][1440],int position,int ascii);
-extern void remove_char_from_buffer(char status_buffer[4][1440],int position,int ascii);
-extern void clear_status_bar(char status_buffer[4][1440]);
+//insert string in buffer based on position
 extern void write_string(char to_write[],int position);
+//insert string in buffer in the end with a cursor
 extern void write_typed_string(char to_write[]);
 #endif /* TEXT_H */

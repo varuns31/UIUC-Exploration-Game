@@ -47,113 +47,97 @@
  * Each character is 8x16 pixels and occupies two lines in the table below.
  * Each byte represents a single bitmapped line of a single character.
  */
-#define STATUSBAR_PLANE_SIZE	((320 * 18) / 4)
+#define STATUSBAR_PLANE_SIZE	((320 * 18) / 4) // (width*height)/4
 extern unsigned char status_buffer[4][STATUSBAR_PLANE_SIZE];
 
+/*
+ * write_string
+ *   DESCRIPTION: writes string by character onto buffer
+ *   INPUTS: to_write -- a char pointer with text to write on buffer
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: Changes status bar buffer
+ */     
 void write_string(char to_write[],int position)
 {
     int i,j;
     int length;
-    for(j=0;to_write[j]!=NULL;j++)
+    for(j=0;to_write[j]!=NULL;j++)//find length of string
     {
 
     }
     length=j;
     for(i=0;i<length;i++)
     {
-        inset_char_in_buffer(status_buffer,position+(2*i),to_write[i]);
+        inset_char_in_buffer(status_buffer,position+(2*i),to_write[i]);//print charcter onto status bar according to position
     }
 }
+/*
+ * write_typed_string
+ *   DESCRIPTION: writes string by character onto buffer from the end
+ *   INPUTS: to_write -- a char pointer with text to write on buffer
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: Changes status bar buffer
+ */   
 void write_typed_string(char to_write[])
 {
     int i,j,position;
     int length;
-    for(j=0;to_write[j]!=NULL;j++)
+    for(j=0;to_write[j]!=NULL;j++)//find length of string
     {
 
     }
     length=j;
-    char temp[length+1];
+    char temp[length+1];//set a string with "_" appended
     if(length<20)
     {
         for(i=0;i<length;i++)
         {
-            temp[i]=to_write[i];
+            temp[i]=to_write[i];//copy all characters
         }
         temp[length]='_';
         length++;
-        to_write=temp;
+        to_write=temp;//change string
     }
-    // length++;
     position=80-(2*length);
     for(i=0;i<length;i++)
     {
-        inset_char_in_buffer(status_buffer,position+(2*i),to_write[i]);
-    }
-    // if(length<12){
-    //     inset_char_in_buffer(status_buffer,78,"_");
-    // }
-}
-void clear_status_bar(char status_buffer[4][1440])
-{
-    int i,j;
-    for(i=0;i<4;i++)
-    {
-        for(j=0;j<1440;j++)
-        {
-            status_buffer[i][j]=50;
-        }
+        inset_char_in_buffer(status_buffer,position+(2*i),to_write[i]);//print in the end of status bar
     }
 }
+/*
+ * inset_char_in_buffer
+ *   DESCRIPTION: writes ascii character onto buffer from the position
+ *   INPUTS: to_write -- a char pointer with text to write on buffer
+ *   positon -- an integer to the position of char on status bar
+ *   ascii -- an integer value of ascii to be printed
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: Changes status bar buffer
+ */   
 void inset_char_in_buffer(char status_buffer[4][1440],int position,int ascii)
 {
     int i,j;
     int k=0;
     int l=0;
     char a;
-    for(j=0;j<16;j++)
+    for(j=0;j<16;j++)//loop over 16 lines in font data
     {
-        i=80*(j+1)+position;
+        i=80*(j+1)+position;//find start position in each plane of buffer 
         a=font_data[ascii][j];
-        for(k=0;k<8;k++)
+        for(k=0;k<8;k++)//loop over every bit in font data byte
         {
-            int temp=((a)>>(7-k));
+            int temp=((a)>>(7-k));//check every bit
             if((temp & 1)==1)
             {
-                status_buffer[l][i]=0;
+                status_buffer[l][i]=0;//print black for 1 in font data
             }
-            l++;
+            l++;//change plane
             if(l==4)
             {
-                l=0;
-                i++;
-            }
-        }
-    }
-
-}
-void remove_char_from_buffer(char status_buffer[4][1440],int position,int ascii)
-{
-    int i,j;
-    int k=0;
-    int l=0;
-    char a;
-    for(j=0;j<16;j++)
-    {
-        i=80*(j+1)+position;
-        a=font_data[ascii][j];
-        for(k=0;k<8;k++)
-        {
-            int temp=((a)>>(7-k));
-            if((temp & 1)==1)
-            {
-                status_buffer[l][i]=50;
-            }
-            l++;
-            if(l==4)
-            {
-                l=0;
-                i++;
+                l=0;//change plane 
+                i++;//move forward in each plane buffer
             }
         }
     }

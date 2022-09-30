@@ -72,9 +72,7 @@
 #define SCROLL_SIZE     (SCROLL_X_WIDTH * SCROLL_Y_DIM)
 #define SCREEN_SIZE	(SCROLL_SIZE * 4 + 1)
 #define BUILD_BUF_SIZE  (SCREEN_SIZE + 20000) 
-#define STATUSBAR_SIZE	((SCROLL_X_WIDTH * 18) * 4 + 1)
 #define STATUSBAR_PLANE_SIZE	((SCROLL_X_DIM * 18) / 4)
-#define STATUSBAR_BUF_SIZE (STATUSBAR_SIZE + 20000)
 #define BUILD_BASE_INIT ((BUILD_BUF_SIZE - SCREEN_SIZE) / 2)
 
 /* Mode X and general VGA parameters */
@@ -91,10 +89,10 @@ static unsigned short mode_X_seq[NUM_SEQUENCER_REGS] = {
 };
 static unsigned short mode_X_CRTC[NUM_CRTC_REGS] = {
     0x5F00, 0x4F01, 0x5002, 0x8203, 0x5404, 0x8005, 0xBF06, 0x1F07,
-    0x0008, 0x0109, //Changed from 4109 to 0109
+    0x0008, 0x0109, //Changed from 4109 to 0109 to change line compare register
     0x000A, 0x000B, 0x000C, 0x000D, 0x000E, 0x000F,
     0x9C10, 0x8E11, 0x8F12, 0x2813, 0x0014, 0x9615, 0xB916, 0xE317,
-    0x6B18//changed from FF18 to 6B18 to make it just above 182*2=364
+    0x6B18//changed from FF18 to 6B18 to make it just above 182*2=364 in line compare register
 };
 //LINE COMPARE REGISTER SET Above 0x16C to put horizontal divide above 182nd line and due to double buffering, it's set to 182*2=364-1=363
 static unsigned char mode_X_attr[NUM_ATTR_REGS * 2] = {
@@ -593,7 +591,7 @@ draw_vert_line (int x)
     if (x < 0 || x >= SCROLL_X_DIM)
 	return -1;
 
-    /* Adjust y to the logical column value. */
+    /* Adjust x to the logical column value. */
     x += show_x;
 
     /* Get the image of the column. */
@@ -1028,9 +1026,9 @@ copy_image (unsigned char* img, unsigned short scr_addr)
 }
 /*
  * copy_status_bar
- *   DESCRIPTION: Copy one plane of a screen from the build buffer to the 
+ *   DESCRIPTION: Copy one plane of a screen from the status_bar's build buffer to the 
  *                video memory.
- *   INPUTS: img -- a pointer to a single screen plane in the build buffer
+ *   INPUTS: img -- a pointer to a single screen plane in the status_bar's build buffer
  *           scr_addr -- the destination offset in video memory
  *   OUTPUTS: none
  *   RETURN VALUE: none
@@ -1087,38 +1085,49 @@ main ()
 
 #endif
 
+/*
+ * show_status_bar
+*   DESCRIPTION: Puts the strings passed in status_bar build buffer
+*   The first string is the room name the second string is the 
+*   typed command and third string is the status msg.
+ *   INPUTS: room_name -- a char pointer to room name in status bar
+ *           typed_string -- a char pointer to typed string in status bar
+ *           status_str --a char pointer to status_msg of game in status bar
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: writes status_bar buffer to desired graphic to be printed
+ */
 void
-show_status_bar (char abc[],char abc2[],char abc3[])
+show_status_bar (char room_name[],char typed_string[],char status_str[])
 {
 
-    int i;		  /* loop index over video planes        */
-    int j;
+    int i;	/* loop index over each pixel in a plane         */ 
+    int j;  /* loop index over video planes                  */
 
     for(i=0;i<STATUSBAR_PLANE_SIZE;i++)
     {
         for(j=0;j<4;j++)
         {
-            status_buffer[j][i]=50;
+            status_buffer[j][i]=50; //Fill all pixels in status bar as pink
         }
     }
     
-    if(abc3[0]=='\0')
+    if(status_str[0]=='\0')
     {
-        write_string(abc,0);
-        write_typed_string(abc2);
+        write_string(room_name,0);//fill buffer with room name
+        write_typed_string(typed_string);//fill buffer with typed_string in the end
     }
     else
     {
         int j;
-        for(j=0;abc3[j]!=NULL;j++)
+        for(j=0;status_str[j]!=NULL;j++)
         {
 
         }
         int pos=(80-j)/4;
-        write_string(abc3,pos);
+        write_string(status_str,pos);//centre align the string and add to buffer for status msg
     }
-    //write_typed_string("we will rock you");
-    //inset_char_in_buffer(status_buffer,80,70);
+   
     /* 
      * Calculate offset of build buffer plane to be mapped into plane 0 
      * of display.
