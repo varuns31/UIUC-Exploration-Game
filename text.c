@@ -52,27 +52,25 @@ void inset_char_in_buffer(char status_buffer[4][1440])
     int i,j;
     int k=0;
     int l=0;
-    for(i=0;i<1440;i++)
+    char a;
+    for(j=0;j<16;j++)
     {
-        for(j=0;j<16;j++)
+        i=80*(j+1);
+        a=font_data[70][j];
+        for(k=0;k<8;k++)
         {
-            char a=font_data[70][j];
-            for(k=0;k<8;k++)
+            int temp=((a)>>(7-k));
+            if((temp & 1)==1)
             {
-                char temp=((a)>>(7-k));
-                if((temp & 1)==1)
-                {
-                    status_buffer[l][i]=20;
-                }
-                l++;
-                if(l==4)
-                {
-                    l=0;
-                    i++;
-                }
+                status_buffer[l][i]=90;
+            }
+            l++;
+            if(l==4)
+            {
+                l=0;
+                i++;
             }
         }
-
     }
 
 }
