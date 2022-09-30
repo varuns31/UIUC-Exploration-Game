@@ -251,7 +251,8 @@ game_loop ()
 	    enter_room = 0;
 	}
 	show_screen ();
-	show_status_bar_2(room_name(game_info.where));
+	show_status_bar_2(room_name(game_info.where),get_typed_command());
+	//show_status_bar_2(get_typed_command());
 
 	/*
 	 * Wait for tick.  The tick defines the basic timing of our

@@ -1124,7 +1124,7 @@ show_status_bar ()
      */
 }
 void
-show_status_bar_2 (char abc[])
+show_status_bar_2 (char abc[],char abc2[])
 {
 
     int i;		  /* loop index over video planes        */
@@ -1138,8 +1138,10 @@ show_status_bar_2 (char abc[])
         }
     }
     
-    write_string(status_buffer,abc,0);
-    write_typed_string("we will rock you");
+    write_string(abc,0);
+    //strcat(abc2,"_");
+    write_typed_string(abc2);
+    //write_typed_string("we will rock you");
     //inset_char_in_buffer(status_buffer,80,70);
     /* 
      * Calculate offset of build buffer plane to be mapped into plane 0 

@@ -50,7 +50,7 @@
 #define STATUSBAR_PLANE_SIZE	((320 * 18) / 4)
 extern unsigned char status_buffer[4][STATUSBAR_PLANE_SIZE];
 
-int write_string(char status_buffer[4][1440],char to_write[],int position)
+int write_string(char to_write[],int position)
 {
     int i,j;
     int length;
@@ -73,11 +73,26 @@ int write_typed_string(char to_write[])
 
     }
     length=j;
-    position=80-(2*j);
+    char temp[length+1];
+    if(length<20)
+    {
+        for(i=0;i<length;i++)
+        {
+            temp[i]=to_write[i];
+        }
+        temp[length]='_';
+        length++;
+        to_write=temp;
+    }
+    // length++;
+    position=80-(2*length);
     for(i=0;i<length;i++)
     {
         inset_char_in_buffer(status_buffer,position+(2*i),to_write[i]);
     }
+    // if(length<12){
+    //     inset_char_in_buffer(status_buffer,78,"_");
+    // }
 }
 void clear_status_bar(char status_buffer[4][1440])
 {
