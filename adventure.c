@@ -246,12 +246,21 @@ game_loop ()
 	    /* Draw the room (calls show. */
 	
 	    redraw_room ();
+		//show_status_bar_2(room_name(game_info.where),get_typed_command());
 
 	    /* Only draw once on entry. */
 	    enter_room = 0;
 	}
+	if(status_msg[0]!='\0') {
+		(void)pthread_mutex_lock (&msg_lock);
+		show_status_bar_2(status_msg,"\0");
+		(void)pthread_mutex_unlock (&msg_lock);
+	} 
+	else{
+		show_status_bar_2(room_name(game_info.where),get_typed_command());
+	}
 	show_screen ();
-	show_status_bar_2(room_name(game_info.where),get_typed_command());
+	
 	//show_status_bar_2(get_typed_command());
 
 	/*
@@ -646,7 +655,7 @@ status_thread (void* ignore)
 	while ('\0' == status_msg[0]) {
 	    pthread_cond_wait (&msg_cv, &msg_lock);
 	}
-
+	//show_status_bar_2(status_msg,"\0");
 	/* 
 	 * A message is present: if we stop before the timeout
 	 * passes, assume that a new one has been posted; if the
@@ -719,11 +728,16 @@ time_is_after (struct timeval* t1, struct timeval* t2)
 void
 show_status (const char* s)
 {
+	int i;
     /* msg_lock critical section starts here. */
     (void)pthread_mutex_lock (&msg_lock);
 
     /* Copy the new message under the protection of msg_lock. */
     strncpy (status_msg, s, STATUS_MSG_LEN);
+	// for(i=0;i<10000;i++)
+	// {
+
+	// }
     status_msg[STATUS_MSG_LEN] = '\0';
 
     /* 
