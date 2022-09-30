@@ -47,6 +47,9 @@
  * Each character is 8x16 pixels and occupies two lines in the table below.
  * Each byte represents a single bitmapped line of a single character.
  */
+#define STATUSBAR_PLANE_SIZE	((320 * 18) / 4)
+extern unsigned char status_buffer[4][STATUSBAR_PLANE_SIZE];
+
 int write_string(char status_buffer[4][1440],char to_write[],int position)
 {
     int i,j;
@@ -56,6 +59,21 @@ int write_string(char status_buffer[4][1440],char to_write[],int position)
 
     }
     length=j;
+    for(i=0;i<length;i++)
+    {
+        inset_char_in_buffer(status_buffer,position+(2*i),to_write[i]);
+    }
+}
+int write_typed_string(char to_write[])
+{
+    int i,j,position;
+    int length;
+    for(j=0;to_write[j]!=NULL;j++)
+    {
+
+    }
+    length=j;
+    position=80-(2*j);
     for(i=0;i<length;i++)
     {
         inset_char_in_buffer(status_buffer,position+(2*i),to_write[i]);

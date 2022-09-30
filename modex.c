@@ -1139,6 +1139,8 @@ show_status_bar_2 (char abc[])
     }
     
     write_string(status_buffer,abc,0);
+    write_typed_string("we will rock you");
+    //inset_char_in_buffer(status_buffer,80,70);
     /* 
      * Calculate offset of build buffer plane to be mapped into plane 0 
      * of display.

@@ -170,6 +170,9 @@ static pthread_mutex_t msg_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t  msg_cv = PTHREAD_COND_INITIALIZER;
 static char status_msg[STATUS_MSG_LEN + 1] = {'\0'};
 
+#define STATUSBAR_PLANE_SIZE	((320 * 18) / 4)
+extern unsigned char status_buffer[4][STATUSBAR_PLANE_SIZE];
+
 
 /* 
  * cancel_status_thread
