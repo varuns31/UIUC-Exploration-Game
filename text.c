@@ -69,7 +69,7 @@ void write_string(char to_write[],int position)
     length=j;
     for(i=0;i<length;i++)
     {
-        inset_char_in_buffer(status_buffer,position+(2*i),to_write[i]);//print charcter onto status bar according to position
+        inset_char_in_buffer(position+(2*i),to_write[i]);//print charcter onto status bar according to position
     }
 }
 /*
@@ -84,7 +84,7 @@ void write_typed_string(char to_write[])
 {
     int i,j,position;
     int length;
-    for(j=0;to_write[j]!=NULL;j++)//find length of string
+    for(j=0;to_write[j]!='\0';j++)//find length of string
     {
 
     }
@@ -103,7 +103,7 @@ void write_typed_string(char to_write[])
     position=80-(2*length);
     for(i=0;i<length;i++)
     {
-        inset_char_in_buffer(status_buffer,position+(2*i),to_write[i]);//print in the end of status bar
+        inset_char_in_buffer(position+(2*i),to_write[i]);//print in the end of status bar
     }
 }
 /*
@@ -116,7 +116,7 @@ void write_typed_string(char to_write[])
  *   RETURN VALUE: none
  *   SIDE EFFECTS: Changes status bar buffer
  */   
-void inset_char_in_buffer(char status_buffer[4][1440],int position,int ascii)
+void inset_char_in_buffer(int position,int ascii)
 {
     int i,j;
     int k=0;
