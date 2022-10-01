@@ -1120,7 +1120,7 @@ show_status_bar (char room_name[],char typed_string[],char status_str[])
     else
     {
         int j;
-        for(j=0;status_str[j]!=NULL;j++)//length of string
+        for(j=0;status_str[j]!='\0';j++)//length of string
         {
 
         }
