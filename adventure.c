@@ -171,7 +171,6 @@ static pthread_mutex_t buf_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t  msg_cv = PTHREAD_COND_INITIALIZER;
 static char status_msg[STATUS_MSG_LEN + 1] = {'\0'};
 
-#define STATUSBAR_PLANE_SIZE	((320 * 18) / 4)
 extern unsigned char status_buffer[4][STATUSBAR_PLANE_SIZE];
 
 
@@ -263,7 +262,7 @@ game_loop ()
 		//unlock if status_msg value didn't change
 		(void)pthread_mutex_lock (&buf_lock);
 		//lock while filling status_bar buffer to make it synchronous
-		show_status_bar(room_name(game_info.where),get_typed_command(),"\0");
+		show_status_bar((char *)room_name(game_info.where),(char *)get_typed_command(),"\0");
 		(void)pthread_mutex_unlock (&buf_lock);
 	}
 	show_screen ();
@@ -733,7 +732,6 @@ time_is_after (struct timeval* t1, struct timeval* t2)
 void
 show_status (const char* s)
 {
-	int i;
     /* msg_lock critical section starts here. */
     (void)pthread_mutex_lock (&msg_lock);
 

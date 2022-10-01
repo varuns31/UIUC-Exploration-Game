@@ -48,4 +48,7 @@ extern void inset_char_in_buffer(char status_buffer[4][1440],int position,int as
 extern void write_string(char to_write[],int position);
 //insert string in buffer in the end with a cursor
 extern void write_typed_string(char to_write[]);
+
+extern void show_status_bar (char room_name[],char typed_string[],char status_str[]);
+
 #endif /* TEXT_H */

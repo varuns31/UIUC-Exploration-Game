@@ -62,7 +62,7 @@ void write_string(char to_write[],int position)
 {
     int i,j;
     int length;
-    for(j=0;to_write[j]!=NULL;j++)//find length of string
+    for(j=0;to_write[j]!='\0';j++)//find length of string
     {
 
     }
