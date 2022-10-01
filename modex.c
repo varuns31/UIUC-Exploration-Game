@@ -1120,11 +1120,11 @@ show_status_bar (char room_name[],char typed_string[],char status_str[])
     else
     {
         int j;
-        for(j=0;status_str[j]!=NULL;j++)
+        for(j=0;status_str[j]!=NULL;j++)//length of string
         {
 
         }
-        int pos=(320-(j*8))/8;
+        int pos=(320-(j*8))/8;//every character takes two positions
         write_string(status_str,pos);//centre align the string and add to buffer for status msg
     }
    
