@@ -49,6 +49,7 @@
 
 #include "modex.h"
 #include "text.h"
+#include "octree.h"
 
 
 /* 
@@ -880,6 +881,9 @@ fill_palette_mode_x ()
 
     /* Write all 64 colors from array. */
     REP_OUTSB (0x03C9, palette_RGB, 64 * 3);
+
+    char** a;
+    fill_pallette_new(a);
 }
 
 

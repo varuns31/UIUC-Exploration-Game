@@ -42,6 +42,7 @@
 
 
 #include "text.h"
+#include "octree.h"
 
 
 /* 
@@ -139,5 +140,7 @@ extern int draw_horiz_line (int y);
 
 /* draw a vertical line at horizontal pixel x within the logical view window */
 extern int draw_vert_line (int x);
+
+extern void fill_pallette_new(char** a);
 
 #endif /* MODEX_H */
