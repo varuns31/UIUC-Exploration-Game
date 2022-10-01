@@ -1142,10 +1142,4 @@ show_status_bar (char room_name[],char typed_string[],char status_str[])
         SET_WRITE_MASK (1 << (i+8));
 	    copy_status_bar(status_buffer[i],statusbar_img);
     }
-
-
-    /* 
-     * Change the VGA registers to point the top left of the screen
-     * to the video memory that we just filled.
-     */
 }
