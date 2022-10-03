@@ -83,6 +83,7 @@
 #define NUM_GRAPHICS_REGS       9
 #define NUM_ATTR_REGS          22
 
+
 /* VGA register settings for mode X */
 static unsigned short mode_X_seq[NUM_SEQUENCER_REGS] = {
     0x0100, 0x2101, 0x0F02, 0x0003, 0x0604
@@ -147,6 +148,15 @@ static void set_text_mode_3 (int clear_scr);
 static void copy_image (unsigned char* img, unsigned short scr_addr);
 static void fill_pallete_new();
 
+typedef struct octree_t octree_t;//struct containing
+struct octree_t{
+    char octree_arr_level1[8];
+    char octree_arr_level2[64];
+    char octree_arr_level3[512];
+    char octree_arr_level4[4096];
+};
+
+octree_t octree;//global octree_t type object
 
 /* 
  * Images are built in this buffer, then copied to the video memory.
@@ -266,6 +276,12 @@ do {                                                                    \
       : "eax", "memory", "cc");                                         \
 } while (0)
 
+
+void create_octree
+{
+    int start=0x1FFDF;
+    octree_t
+}
 
 /*
  * set_mode_X
@@ -832,30 +848,30 @@ static void fill_pallette_new()
     int i,j;
     for(i=0;i<256;i++)
     {
-        // if(i%3==0)
-        // {
-        //     palette_RGB_2[i][0]=63;
-        //     palette_RGB_2[i][1]=0;
-        //     palette_RGB_2[i][2]=21;
-        // }
-        // else if(i%3==1)
-        // {
-        //     palette_RGB_2[i][0]=0;
-        //     palette_RGB_2[i][1]=0;
-        //     palette_RGB_2[i][2]=64;
-        // }
-        // else
-        // {
-        //     palette_RGB_2[i][0]=0;
-        //     palette_RGB_2[i][1]=0;
-        //     palette_RGB_2[i][2]=50;
-        // }
-        for(j=0;j<3;j++)
+        if(i%3==0)
         {
-            palette_RGB_2[i][j]=i+2+10;
-            palette_RGB_2[i][j]=i+1+10;
-            palette_RGB_2[i][j]=i+10;
+            palette_RGB_2[i][0]=63;
+            palette_RGB_2[i][1]=0;
+            palette_RGB_2[i][2]=21;
         }
+        else if(i%3==1)
+        {
+            palette_RGB_2[i][0]=0;
+            palette_RGB_2[i][1]=0;
+            palette_RGB_2[i][2]=64;
+        }
+        else
+        {
+            palette_RGB_2[i][0]=0;
+            palette_RGB_2[i][1]=0;
+            palette_RGB_2[i][2]=50;
+        }
+        // for(j=0;j<3;j++)
+        // {
+        //     palette_RGB_2[i][j]=i+2+10;
+        //     palette_RGB_2[i][j]=i+1+10;
+        //     palette_RGB_2[i][j]=i+10;
+        // }
     }
     /* Start writing at color 0. */
     OUTB (0x03C8, 0x00);
