@@ -1,0 +1,16 @@
+Bugs in the program
+1)
+I was incrementing address by 1 to get to the next pixel but needed to add 
+scroll_size as it was the pixel in the next row
+2)
+VGA Register value set to 16C instead of 16B. this error was because 182*2=364 which
+is 16C in hex but we needed the horizontal divide just above that so 16C was making
+me lose part of my status bar.
+3)
+Passing in a const char* (without type casting it) as argument gave warning.
+4)
+I was not using extern on my status bar buffer and I was creating
+a local instance of it in my text.c so my original buffer
+was not getting updated
+5)My pixel panning mode set to 1 was still allowing scrolling but I forgot to 
+set the register after initialization instead of during which caused the problem.
