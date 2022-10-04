@@ -147,7 +147,7 @@ static void fill_palette_text ();
 static void write_font_data ();
 static void set_text_mode_3 (int clear_scr);
 static void copy_image (unsigned char* img, unsigned short scr_addr);
-static void fill_pallette_new();
+void fill_pallette_new(u_int8_t* image);
 
 typedef struct octree_t octree_t;//struct containing
 struct octree_t{
@@ -201,6 +201,7 @@ static unsigned char* mem_image;    /* pointer to start of video memory */
 static unsigned short target_img;   /* offset of displayed screen image */
 static unsigned short statusbar_img;
 unsigned char status_buffer[4][STATUSBAR_PLANE_SIZE];
+unsigned char palette_RGB_final[256][3];
 
 
 /* 
@@ -910,42 +911,54 @@ set_graphics_registers (unsigned short table[NUM_GRAPHICS_REGS])
     REP_OUTSW (0x03CE, table, NUM_GRAPHICS_REGS);
 }
 
-static void fill_pallette_new()
-{
-    static unsigned char palette_RGB_2[256][3];
-    int i;
-    for(i=0;i<256;i++)
+void fill_pallette_new(u_int8_t* image)
+{ 
+    static unsigned char palette_RGB_final[256][3];
+    int i,k;
+    int j=0;
+    for(i=0;i<64;i++)
     {
-        if(i%3==0)
-        {
-            palette_RGB_2[i][0]=63;
-            palette_RGB_2[i][1]=0;
-            palette_RGB_2[i][2]=21;
-        }
-        else if(i%3==1)
-        {
-            palette_RGB_2[i][0]=0;
-            palette_RGB_2[i][1]=0;
-            palette_RGB_2[i][2]=64;
-        }
-        else
-        {
-            palette_RGB_2[i][0]=0;
-            palette_RGB_2[i][1]=0;
-            palette_RGB_2[i][2]=50;
-        }
-        // for(j=0;j<3;j++)
+        palette_RGB_final[i][0]=(octree.octree_arr_level2[j][0]<<3)+6;
+        palette_RGB_final[i][1]=(octree.octree_arr_level2[j][1]<<3)+6;
+        palette_RGB_final[i][2]=(octree.octree_arr_level2[j][2]<<3)+6;
+        j++;
+        // for(k=0;k<10000000000000;k++)
         // {
-        //     palette_RGB_2[i][j]=i+2+10;
-        //     palette_RGB_2[i][j]=i+1+10;
-        //     palette_RGB_2[i][j]=i+10;
+        //     show_status_bar(palette_RGB_final[i],'\0','\0');
         // }
     }
+    // for(i=64;i<128;i++)
+    // {
+    //     if(i%3==0)
+    //     {
+    //         palette_RGB_final[i][0]=0;
+    //         palette_RGB_final[i][1]=0;
+    //         palette_RGB_final[i][2]=0;
+    //     }
+    //     else if(i%3==1)
+    //     {
+    //         palette_RGB_final[i][0]=0;
+    //         palette_RGB_final[i][1]=0;
+    //         palette_RGB_final[i][2]=12;
+    //     }
+    //     else
+    //     {
+    //         palette_RGB_final[i][0]=12;
+    //         palette_RGB_final[i][1]=0;
+    //         palette_RGB_final[i][2]=12;
+    //     }
+    //     // for(j=0;j<3;j++)
+    //     // {
+    //     //     palette_RGB_2[i][j]=i+2+10;
+    //     //     palette_RGB_2[i][j]=i+1+10;
+    //     //     palette_RGB_2[i][j]=i+10;
+    //     // }
+    // }
     /* Start writing at color 0. */
     OUTB (0x03C8, 0x00);
 
     /* Write all 256 colors from array. */
-    REP_OUTSB (0x03C9, palette_RGB_2, 256 * 3);
+    REP_OUTSB (0x03C9, palette_RGB_final, 256 * 3);
 
 }
 
@@ -961,6 +974,7 @@ static void fill_pallette_new()
 static void
 fill_palette_mode_x ()
 {
+    fill_octree();//fill octree with all possible combinations till level 4 
     // /* 6-bit RGB (red, green, blue) values for first 64 colors */
     // /* these are coded for 2 bits red, 2 bits green, 2 bits blue */
     // static unsigned char palette_RGB[64][3] = {
@@ -1003,7 +1017,7 @@ fill_palette_mode_x ()
 
     // /* Write all 64 colors from array. */
     // REP_OUTSB (0x03C9, palette_RGB, 64 * 3);
-    fill_pallette_new();
+    fill_pallette_new(NULL);
 }
 
 

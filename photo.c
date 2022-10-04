@@ -85,6 +85,7 @@ struct image_t {
  * by calling prep_room.
  */
 static const room_t* cur_room = NULL; 
+extern void fill_pallette_new();
 
 
 /* 
@@ -315,6 +316,13 @@ photo_width (const photo_t* p)
 void
 prep_room (const room_t* r)
 {
+	image_t* curr=obj_image(r);
+	uint8_t* image;
+	if(curr!=NULL)
+	{
+		image=curr->img;
+	}
+	fill_pallette_new(image);
     /* Record the current room. */
     cur_room = r;
 }
