@@ -46,6 +46,7 @@
 #include <sys/io.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include<math.h>
 
 #include "modex.h"
 #include "text.h"
@@ -146,14 +147,14 @@ static void fill_palette_text ();
 static void write_font_data ();
 static void set_text_mode_3 (int clear_scr);
 static void copy_image (unsigned char* img, unsigned short scr_addr);
-static void fill_pallete_new();
+static void fill_pallette_new();
 
 typedef struct octree_t octree_t;//struct containing
 struct octree_t{
-    char octree_arr_level1[8];
-    char octree_arr_level2[64];
-    char octree_arr_level3[512];
-    char octree_arr_level4[4096];
+    char octree_arr_level1[8][3];
+    char octree_arr_level2[64][3];
+    char octree_arr_level3[512][3];
+    char octree_arr_level4[4096][3];
 };
 
 octree_t octree;//global octree_t type object
@@ -277,10 +278,77 @@ do {                                                                    \
 } while (0)
 
 
-void create_octree
+void fill_level(char a[8][3],int level,char b[3])
 {
-    int start=0x1FFDF;
-    octree_t
+    int i;
+    int k=0;
+    level--;
+    for(i=0;i<8;i++)
+    {
+        if(i>=4)
+        a[i][0]+=(1<<level)+b[0];
+        else
+        a[i][0]+=b[0];
+        //*(a + (l + i) * 64 + 0) += (1 << level);
+        if(k>=2)
+        {
+            a[i][1]+=(1<<level)+b[1];   
+        }
+        else
+        a[i][1]+=b[1];
+        k++;
+        if(k==4)k=0;
+
+        if(i%2==1)
+        a[i][2]+=(1<<level)+b[2];
+        else
+        a[i][2]+=b[2];
+    }
+}
+void fill_octree()
+{
+    int i;
+    char temp[3];
+    temp[0]=0;
+    temp[2]=0;
+    temp[3]=0;
+    for(i=0;i<8;i++)
+    {
+        octree.octree_arr_level1[i][0]=0;
+       octree.octree_arr_level1[i][1]=0;
+       octree.octree_arr_level1[i][2]=0;
+    }
+    for(i=0;i<64;i++)
+    {
+       octree.octree_arr_level2[i][0]=0;
+       octree.octree_arr_level2[i][1]=0;
+       octree.octree_arr_level2[i][2]=0;
+    }
+    for(i=0;i<512;i++)
+    {
+       octree.octree_arr_level3[i][0]=0;
+       octree.octree_arr_level3[i][1]=0;
+       octree.octree_arr_level3[i][2]=0;
+    }
+    for(i=0;i<4096;i++)
+    {
+       octree.octree_arr_level4[i][0]=0;
+       octree.octree_arr_level4[i][1]=0;
+       octree.octree_arr_level4[i][2]=0;
+    }
+    fill_level(octree.octree_arr_level1,1,temp);
+    for(i=0;i<64;i+=8)
+    {
+        fill_level(octree.octree_arr_level2+i,2,octree.octree_arr_level1[i/8]);
+    }
+    for(i=0;i<512;i+=8)
+    {
+        fill_level(octree.octree_arr_level3+i,3,octree.octree_arr_level2[i/8]);
+    }
+    for(i=0;i<4096;i+=8)
+    {
+        fill_level(octree.octree_arr_level4+i,4,octree.octree_arr_level3[i/8]);
+    }
 }
 
 /*
@@ -845,7 +913,7 @@ set_graphics_registers (unsigned short table[NUM_GRAPHICS_REGS])
 static void fill_pallette_new()
 {
     static unsigned char palette_RGB_2[256][3];
-    int i,j;
+    int i;
     for(i=0;i<256;i++)
     {
         if(i%3==0)
