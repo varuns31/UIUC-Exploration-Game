@@ -94,6 +94,7 @@ typedef struct {
 }octree_t;
 
 octree_t octree_level_4[4096];
+octree_t octree_level_2[64];
 
 int comparator(const void* a,const void*b)
 {
@@ -503,6 +504,14 @@ read_photo (const char* fname)
 	}
 	return NULL;
     }
+	for(i=0;i<4096;i++)
+	{
+		octree_level_4[i].index=i;
+		octree_level_4[i].red=0;
+		octree_level_4[i].green=0;
+		octree_level_4[i].blue=0;
+		octree_level_4[i].count=0;
+	}
 
     /* 
      * Loop over rows from bottom to top.  Note that the file is stored
@@ -565,7 +574,10 @@ read_photo (const char* fname)
 		int green=(val>>4);
 		green=green & 0xF;
 		green=(green<<2);
-		green=green + (octree_level_4[4095-i].green/(2*count));
+		if(count !=0)
+		{
+			green=green + (octree_level_4[4095-i].green/(2*count));
+		}
 		int blue=val & 0xF;
 		blue=(blue<<1);
 		if(octree_level_4[4095-i].blue >=count)
@@ -576,6 +588,95 @@ read_photo (const char* fname)
 		p->palette[i][0]=(red<<1);
 		p->palette[i][1]=green;
 		p->palette[i][2]=(blue<<1);
+	}
+	for(i=0;i<64;i++)
+	{
+		octree_level_2[i].index=i;
+		octree_level_2[i].red=0;
+		octree_level_2[i].green=0;
+		octree_level_2[i].blue=0;
+		octree_level_2[i].count=0;
+	}
+
+	for(i=128;i<4096;i++)
+	{
+		int temp;
+		int ind2;
+		int ind1=octree_level_4[4095-i].index;
+
+		ind2=(ind1>>10);
+		int red=(ind1>>7);
+		red=red & 0x06;
+		ind2=(ind2<<2);
+
+		temp=(ind1>>6);
+		temp=temp&0x03;
+		ind2+=temp;
+		int green=(ind1>>2);
+		green=green & 0x0C;
+		ind2=(ind2<<2);
+
+		temp=(ind1>>2);
+		temp=temp&0x03;
+		ind2+=temp;
+		int blue= ind1 & 0x03;
+		blue=(blue<<1);
+
+		int count=octree_level_4[4095-i].count;
+		blue*=count;
+		green*=count;
+		red*=count;
+
+		octree_level_2[ind2].red=red+octree_level_4[4095-i].red;
+		octree_level_2[ind2].green=green+octree_level_4[4095-i].green;
+		octree_level_2[ind2].blue=blue+octree_level_4[4095-i].blue;
+		octree_level_2[ind2].count+=octree_level_4[4095-i].count;
+
+		int k=3;
+	}
+
+	for(i=0;i<64;i++)
+	{
+		int red_ind=(i>>4);
+		int green_ind=0;
+		int blue_ind=0;
+		int red=octree_level_2[i].red;
+		int count=octree_level_2[i].count;
+		
+		if(count == 0 )
+		{
+			red_ind=0;
+			green_ind=0;
+			blue_ind=0;
+
+		}
+		else
+		{
+			red=red/count;
+			red_ind=red_ind<<4;
+			red=red<<1;
+			red_ind=red_ind+red;
+
+			green_ind=(i>>2);
+			green_ind= green_ind & 0x03;
+			int green=octree_level_2[i].green;
+			green=green/count;
+			green_ind=green_ind<<4;
+			green_ind=green_ind+green;
+
+			blue_ind=(i & 0x03);
+			int blue=octree_level_2[i].blue;
+			blue=blue/count;
+			blue_ind=blue_ind<<4;
+			blue=blue<<1;
+			blue_ind=blue_ind+blue;
+
+		}
+		
+
+		p->palette[128+i][0]=red_ind;
+		p->palette[128+i][1]=green_ind;
+		p->palette[128+i][2]=blue_ind;
 	}
 
 	// p->palette[1][0]=0x00;
@@ -609,7 +710,7 @@ read_photo (const char* fname)
 			{
 				if(octree_level_4[4095-i].index==index)
 				{
-					//p->img[p->hdr.width * y + x]=64+i;
+					p->img[p->hdr.width * y + x]=64+i;
 					break;
 				}
 			}
@@ -630,13 +731,24 @@ read_photo (const char* fname)
 	    //p->img[p->hdr.width * y + x] = (((pixel >> 14) << 4) |
 					    // (((pixel >> 9) & 0x3) << 2) |
 					    // ((pixel >> 3) & 0x3));
-						int k=0;
-						k++;
-			if(i==128)
-			{
-				p->img[p->hdr.width * y + x]=192;
-			}
-	}
+		int k=0;
+		if(i==128)
+		{
+			int red=(pixel>>14);
+			red=(red<<4);
+
+			int green=(pixel>>9);
+			green=green & 0x03;
+			green=(green<<2);
+
+			int blue=(pixel>>3);
+			blue=blue & 0x03;
+
+			int index= red+blue+green;
+
+			p->img[p->hdr.width * y + x]=index+192;
+		}
+}
     }
     /* All done.  Return success. */
     (void)fclose (in);
