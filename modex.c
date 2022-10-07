@@ -46,6 +46,7 @@
 #include <sys/io.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include<stdint.h>
 
 #include "modex.h"
 #include "text.h"
@@ -274,15 +275,38 @@ typedef struct {
 
 octree_t octree_level_4[4096];
 
-u_int8_t top_four_bits(u_int8_t num)
+void pixelintooctree(u_int16_t num)
 {
-    num=num & 0x
-    return (num>>4);
+    int index;
+    int red_val=(num>>11);
+
+    index=(red_val>>1);
+    red_val=(red_val & 0x0001);
+
+    int green_val=(num>>5);
+    green_val=green_val & (0x003F);
+
+    index=(index<<4);
+    index+=(green_val>>2);
+
+    green_val=(green_val & 0x0003);
+
+    int blue_val=num & (0x001F);
+
+    index=(index<<4);
+    index+=(blue_val>>1);
+
+    blue_val=(blue_val & 0x01);
+
+    octree_level_4[index].count++;
+    octree_level_4[index].red+=red_val;
+    octree_level_4[index].blue+=blue_val;
+    octree_level_4[index].green+=green_val;
 }
 void
-map_frequency(u_int8_t* image,int size)
+map_frequency(u_int16_t pixel)
 {
-
+    pixelintooctree(pixel);
 
 }
 
