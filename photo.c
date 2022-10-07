@@ -85,6 +85,7 @@ struct image_t {
  * by calling prep_room.
  */
 static const room_t* cur_room = NULL; 
+extern map_frequency(uint8_t* image ,int size);
 
 
 /* 
@@ -315,6 +316,10 @@ photo_width (const photo_t* p)
 void
 prep_room (const room_t* r)
 {
+	photo_t* view =room_photo(r);
+	uint8_t pallette[192][3];
+	map_frequency(view->img,(view->hdr.height*view->hdr.width));
+
     /* Record the current room. */
     cur_room = r;
 }

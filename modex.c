@@ -265,6 +265,26 @@ do {                                                                    \
       : "eax", "memory", "cc");                                         \
 } while (0)
 
+typedef struct {
+    int count;
+    int red;
+    int green;
+    int blue;
+}octree_t;
+
+octree_t octree_level_4[4096];
+
+u_int8_t top_four_bits(u_int8_t num)
+{
+    num=num & 0x
+    return (num>>4);
+}
+void
+map_frequency(u_int8_t* image,int size)
+{
+
+
+}
 
 /*
  * set_mode_X
