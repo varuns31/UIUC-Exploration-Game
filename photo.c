@@ -613,32 +613,63 @@ read_photo (const char* fname)
 		int ind1=octree_level_4[4095-i].index;
 
 		ind2=(ind1>>10);
-		int red=(ind1>>7);
-		red=red & 0x06;
 		ind2=(ind2<<2);
-
 		temp=(ind1>>6);
 		temp=temp&0x03;
 		ind2+=temp;
-		int green=(ind1>>2);
-		green=green & 0x0C;
 		ind2=(ind2<<2);
-
 		temp=(ind1>>2);
 		temp=temp&0x03;
 		ind2+=temp;
-		int blue= ind1 & 0x03;
-		blue=(blue<<1);
 
-		int count=octree_level_4[4095-i].count;
-		blue*=count;
-		green*=count;
-		red*=count;
+		if(octree_level_2[ind2].count==0x0)
+		{
+			int red=(ind1>>7);
+			red=red & 0x06;
+			int green=(ind1>>2);
+			green=green & 0x0C;
+			int blue= ind1 & 0x03;
+			blue=(blue<<1);
 
-		octree_level_2[ind2].red=red+octree_level_4[4095-i].red;
-		octree_level_2[ind2].green=green+octree_level_4[4095-i].green;
-		octree_level_2[ind2].blue=blue+octree_level_4[4095-i].blue;
-		octree_level_2[ind2].count+=octree_level_4[4095-i].count;
+			int count=octree_level_4[4095-i].count;
+
+			if(count!=0)
+			{
+				blue*=count;
+				green*=count;
+				red*=count;
+			}
+			
+
+			octree_level_2[ind2].red=red+octree_level_4[4095-i].red;
+			octree_level_2[ind2].green=green+octree_level_4[4095-i].green;
+			octree_level_2[ind2].blue=blue+octree_level_4[4095-i].blue;
+			octree_level_2[ind2].count=octree_level_4[4095-i].count;
+		}
+		else
+		{
+			int red=(ind1>>7);
+			red=red & 0x06;
+			int green=(ind1>>2);
+			green=green & 0x0C;
+			int blue= ind1 & 0x03;
+			blue=(blue<<1);
+
+			int count=octree_level_4[4095-i].count;
+			blue*=count;
+			green*=count;
+			red*=count;
+			
+
+			red=red+octree_level_4[4095-i].red;
+			green=green+octree_level_4[4095-i].green;
+			blue=blue+octree_level_4[4095-i].blue;
+
+			octree_level_2[ind2].red=red+octree_level_2[ind2].red;
+			octree_level_2[ind2].green=green+octree_level_2[ind2].green;
+			octree_level_2[ind2].blue=blue+octree_level_2[ind2].blue;
+			octree_level_2[ind2].count+=octree_level_4[4095-i].count;
+		}
 
 		int k=3;
 	}
@@ -681,7 +712,6 @@ read_photo (const char* fname)
 
 		}
 		
-
 		p->palette[128+i][0]=red_ind;
 		p->palette[128+i][1]=green_ind;
 		p->palette[128+i][2]=blue_ind;
