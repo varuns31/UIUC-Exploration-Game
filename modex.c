@@ -47,6 +47,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include<stdint.h>
+#include<stdlib.h>
 
 #include "modex.h"
 #include "text.h"
@@ -265,50 +266,6 @@ do {                                                                    \
       : "c" ((count)), "S" ((source)), "d" ((port))                     \
       : "eax", "memory", "cc");                                         \
 } while (0)
-
-typedef struct {
-    int count;
-    int red;
-    int green;
-    int blue;
-}octree_t;
-
-octree_t octree_level_4[4096];
-
-void pixelintooctree(u_int16_t num)
-{
-    int index;
-    int red_val=(num>>11);
-
-    index=(red_val>>1);
-    red_val=(red_val & 0x0001);
-
-    int green_val=(num>>5);
-    green_val=green_val & (0x003F);
-
-    index=(index<<4);
-    index+=(green_val>>2);
-
-    green_val=(green_val & 0x0003);
-
-    int blue_val=num & (0x001F);
-
-    index=(index<<4);
-    index+=(blue_val>>1);
-
-    blue_val=(blue_val & 0x01);
-
-    octree_level_4[index].count++;
-    octree_level_4[index].red+=red_val;
-    octree_level_4[index].blue+=blue_val;
-    octree_level_4[index].green+=green_val;
-}
-void
-map_frequency(u_int16_t pixel)
-{
-    pixelintooctree(pixel);
-
-}
 
 /*
  * set_mode_X
@@ -924,6 +881,15 @@ fill_palette_mode_x ()
 
     /* Write all 64 colors from array. */
     REP_OUTSB (0x03C9, palette_RGB, 64 * 3);
+}
+
+copypalletetoVGA(uint8_t pallette[192][3])
+{
+     /* Start writing at color 0. */
+    OUTB (0x03C8, 0x40);
+
+    /* Write all 64 colors from array. */
+    REP_OUTSB (0x03C9, pallette, 192 * 3);
 }
 
 

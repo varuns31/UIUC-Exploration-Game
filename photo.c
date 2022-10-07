@@ -84,8 +84,61 @@ struct image_t {
  * that code (fill_horiz_buffer/fill_vert_buffer).  The value is set 
  * by calling prep_room.
  */
-static const room_t* cur_room = NULL; 
-extern map_frequency(uint8_t* image ,int size);
+
+typedef struct {
+    int count;
+    int red;
+    int green;
+    int blue;
+    int index;
+}octree_t;
+
+octree_t octree_level_4[4096];
+
+int comparator(const void* a,const void*b)
+{
+    octree_t* anew = (octree_t*) a;
+    octree_t* bnew = (octree_t*) b;
+    return anew->count - bnew->count;
+}
+int pixelintooctree(u_int16_t num,int a)
+{
+    int index;
+    int red_val=(num>>11);
+
+    index=(red_val>>1);
+    red_val=(red_val & 0x0001);
+
+    int green_val=(num>>5);
+    green_val=green_val & (0x003F);
+
+    index=(index<<4);
+    index+=(green_val>>2);
+
+    green_val=(green_val & 0x0003);
+
+    int blue_val=num & (0x001F);
+
+    index=(index<<4);
+    index+=(blue_val>>1);
+
+    blue_val=(blue_val & 0x01);
+
+	if(a==0)
+	{
+		octree_level_4[index].count++;
+    	octree_level_4[index].red+=red_val;
+    	octree_level_4[index].blue+=blue_val;
+    	octree_level_4[index].green+=green_val;
+    	octree_level_4[index].index=index;
+		return -1;
+	}
+	else return index;
+
+}
+static const room_t* cur_room = NULL;
+extern copypalletetoVGA(uint8_t pallette[192][3]); 
+//extern map_frequency(uint8_t* image ,int size);
 
 
 /* 
@@ -317,8 +370,8 @@ void
 prep_room (const room_t* r)
 {
 	photo_t* view =room_photo(r);
-	uint8_t pallette[192][3];
-	map_frequency(view->img,(view->hdr.height*view->hdr.width));
+	//map_frequency(view->img,(view->hdr.height*view->hdr.width));
+	copypalletetoVGA(view->palette);
 
     /* Record the current room. */
     cur_room = r;
@@ -423,6 +476,7 @@ read_photo (const char* fname)
     uint16_t x;		/* index over image columns */
     uint16_t y;		/* index over image rows    */
     uint16_t pixel;	/* one pixel from the file  */
+	int i;
 
     /* 
      * Open the file, allocate the structure, read the header, do some
@@ -470,6 +524,7 @@ read_photo (const char* fname)
 		return NULL;
 
 	    }
+		pixelintooctree(pixel,0);
 	    /* 
 	     * 16-bit pixel is coded as 5:6:5 RGB (5 bits red, 6 bits green,
 	     * and 6 bits blue).  We change to 2:2:2, which we've set for the
@@ -486,7 +541,84 @@ read_photo (const char* fname)
 					    ((pixel >> 3) & 0x3));
 	}
     }
+	octree_t map_help[4096];
+	for(i=0;i<4096;i++)
+	{
+		map_help[i]=octree_level_4[i];
+	}
+	qsort(octree_level_4,4096,sizeof(octree_t),comparator);
 
+	for(i=0;i<128;i++)
+	{
+		int count=octree_level_4[4095-i].count;
+		count=count/2;
+		int val=octree_level_4[4095-i].index;
+		int red=(val>>8);
+		red=(red<<1);
+		if(octree_level_4[4095-i].red >=count)
+		{
+			red++;
+		}
+		int green=(val>>4);
+		green=green & 0xF;
+		green=(green<<2);
+		green=green + (octree_level_4[4095-i].green/(2*count));
+		int blue=val & 0xF;
+		blue=(blue<<1);
+		if(octree_level_4[4095-i].blue >=count)
+		{
+			blue++;
+		}
+
+		p->palette[i][0]=(red<<1);
+		p->palette[i][1]=green;
+		p->palette[i][2]=(blue<<1);
+	}
+
+	fseek(in,0,SEEK_SET);
+	
+	for (y = p->hdr.height; y-- > 0; ) {
+
+	/* Loop over columns from left to right. */
+	for (x = 0; p->hdr.width > x; x++) {
+
+	    /* 
+	     * Try to read one 16-bit pixel.  On failure, clean up and 
+	     * return NULL.
+	     */
+	    if (1 != fread (&pixel, sizeof (pixel), 1, in)) {
+		free (p->img);
+		free (p);
+	        (void)fclose (in);
+		return NULL;
+
+	    }
+		int index = pixelintooctree(pixel,1);
+		int count= octree_level_4[4096-128].count;
+		if(map_help[index].count>count)
+		{
+			for(i=0;i<128;i++)
+			{
+				if((p->palette[i][0]>>2)==(pixel>>11))
+				p->img[p->hdr.width * y + x]=64+i;
+			}
+		}
+	    /* 
+	     * 16-bit pixel is coded as 5:6:5 RGB (5 bits red, 6 bits green,
+	     * and 6 bits blue).  We change to 2:2:2, which we've set for the
+	     * game objects.  You need to use the other 192 palette colors
+	     * to specialize the appearance of each photo.
+	     *
+	     * In this code, you need to calculate the p->palette values,
+	     * which encode 6-bit RGB as arrays of three uint8_t's.  When
+	     * the game puts up a photo, you should then change the palette 
+	     * to match the colors needed for that photo.
+	     */
+	    //p->img[p->hdr.width * y + x] = (((pixel >> 14) << 4) |
+					    // (((pixel >> 9) & 0x3) << 2) |
+					    // ((pixel >> 3) & 0x3));
+	}
+    }
     /* All done.  Return success. */
     (void)fclose (in);
     return p;
