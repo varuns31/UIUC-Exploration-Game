@@ -733,8 +733,7 @@ read_photo (const char* fname)
 	    //p->img[p->hdr.width * y + x] = (((pixel >> 14) << 4) |
 					    // (((pixel >> 9) & 0x3) << 2) |
 					    // ((pixel >> 3) & 0x3));
-		int k=0;
-		if(i==128)
+		else
 		{
 			int red=(pixel>>14);
 			red=(red<<4);
