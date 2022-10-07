@@ -137,7 +137,7 @@ int pixelintooctree(u_int16_t num,int a)
 
 }
 static const room_t* cur_room = NULL;
-extern copypalletetoVGA(uint8_t pallette[192][3]); 
+//extern void copypalletetoVGA(uint8_t palette[192][3]); 
 //extern map_frequency(uint8_t* image ,int size);
 
 
@@ -371,7 +371,8 @@ prep_room (const room_t* r)
 {
 	photo_t* view =room_photo(r);
 	//map_frequency(view->img,(view->hdr.height*view->hdr.width));
-	copypalletetoVGA(view->palette);
+	
+	copypalletetoVGA((uint8_t*) view->palette);
 
     /* Record the current room. */
     cur_room = r;
@@ -541,11 +542,13 @@ read_photo (const char* fname)
 					    ((pixel >> 3) & 0x3));
 	}
     }
+
 	octree_t map_help[4096];
 	for(i=0;i<4096;i++)
 	{
 		map_help[i]=octree_level_4[i];
 	}
+
 	qsort(octree_level_4,4096,sizeof(octree_t),comparator);
 
 	for(i=0;i<128;i++)
@@ -575,6 +578,10 @@ read_photo (const char* fname)
 		p->palette[i][2]=(blue<<1);
 	}
 
+	// p->palette[1][0]=0x00;
+	// p->palette[1][1]=0x00;
+	// p->palette[1][2]=0x00;
+
 	fseek(in,0,SEEK_SET);
 	
 	for (y = p->hdr.height; y-- > 0; ) {
@@ -591,18 +598,24 @@ read_photo (const char* fname)
 		free (p);
 	        (void)fclose (in);
 		return NULL;
-
 	    }
+
 		int index = pixelintooctree(pixel,1);
-		int count= octree_level_4[4096-128].count;
+		int count= octree_level_4[4095-128].count;
+
 		if(map_help[index].count>count)
 		{
 			for(i=0;i<128;i++)
 			{
-				if((p->palette[i][0]>>2)==(pixel>>11))
-				p->img[p->hdr.width * y + x]=64+i;
+				if(octree_level_4[4095-i].index==index)
+				{
+					//p->img[p->hdr.width * y + x]=64+i;
+					break;
+				}
 			}
 		}
+
+		//p->img[p->hdr.width * y + x]=64+1;
 	    /* 
 	     * 16-bit pixel is coded as 5:6:5 RGB (5 bits red, 6 bits green,
 	     * and 6 bits blue).  We change to 2:2:2, which we've set for the
@@ -617,6 +630,12 @@ read_photo (const char* fname)
 	    //p->img[p->hdr.width * y + x] = (((pixel >> 14) << 4) |
 					    // (((pixel >> 9) & 0x3) << 2) |
 					    // ((pixel >> 3) & 0x3));
+						int k=0;
+						k++;
+			if(i==128)
+			{
+				p->img[p->hdr.width * y + x]=192;
+			}
 	}
     }
     /* All done.  Return success. */

@@ -147,6 +147,7 @@ static void fill_palette_text ();
 static void write_font_data ();
 static void set_text_mode_3 (int clear_scr);
 static void copy_image (unsigned char* img, unsigned short scr_addr);
+//extern void copypalletetoVGA(uint8_t pallette[192][3]);
 
 
 /* 
@@ -883,7 +884,7 @@ fill_palette_mode_x ()
     REP_OUTSB (0x03C9, palette_RGB, 64 * 3);
 }
 
-copypalletetoVGA(uint8_t pallette[192][3])
+void copypalletetoVGA(uint8_t* pallette)
 {
      /* Start writing at color 0. */
     OUTB (0x03C8, 0x40);
