@@ -512,6 +512,12 @@ read_photo (const char* fname)
 		octree_level_4[i].blue=0;
 		octree_level_4[i].count=0;
 	}
+	for(i=0;i<192;i++)
+	{
+		p->palette[i][0]=0;
+		p->palette[i][1]=0;
+		p->palette[i][2]=0;
+	}
 
     /* 
      * Loop over rows from bottom to top.  Note that the file is stored
@@ -546,9 +552,9 @@ read_photo (const char* fname)
 	     * the game puts up a photo, you should then change the palette 
 	     * to match the colors needed for that photo.
 	     */
-	    // p->img[p->hdr.width * y + x] = (((pixel >> 14) << 4) |
-		// 			    (((pixel >> 9) & 0x3) << 2) |
-		// 			    ((pixel >> 3) & 0x3));
+	    p->img[p->hdr.width * y + x] = (((pixel >> 14) << 4) |
+					    (((pixel >> 9) & 0x3) << 2) |
+					    ((pixel >> 3) & 0x3));
 	}
     }
 
@@ -706,17 +712,7 @@ read_photo (const char* fname)
 		int index = pixelintooctree(pixel,1);
 		int count= octree_level_4[4095-128].count;
 
-		if(map_help[index].count>count)
-		{
-			for(i=0;i<128;i++)
-			{
-				if(octree_level_4[4095-i].index==index)
-				{
-					p->img[p->hdr.width * y + x]=64+i;
-					break;
-				}
-			}
-		}
+		
 
 		//p->img[p->hdr.width * y + x]=64+1;
 	    /* 
@@ -733,6 +729,17 @@ read_photo (const char* fname)
 	    //p->img[p->hdr.width * y + x] = (((pixel >> 14) << 4) |
 					    // (((pixel >> 9) & 0x3) << 2) |
 					    // ((pixel >> 3) & 0x3));
+		if(map_help[index].count>count)
+		{
+			for(i=0;i<128;i++)
+			{
+				if(octree_level_4[4095-i].index==index)
+				{
+					p->img[p->hdr.width * y + x -2]=64+i;
+					break;
+				}
+			}
+		}
 		else
 		{
 			int red=(pixel>>14);
@@ -747,7 +754,7 @@ read_photo (const char* fname)
 
 			int index= red+blue+green;
 
-			p->img[p->hdr.width * y + x]=index+192;
+			p->img[p->hdr.width * y + x -2]=index+192;
 		}
 }
     }
