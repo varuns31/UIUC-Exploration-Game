@@ -546,9 +546,9 @@ read_photo (const char* fname)
 	     * the game puts up a photo, you should then change the palette 
 	     * to match the colors needed for that photo.
 	     */
-	    p->img[p->hdr.width * y + x] = (((pixel >> 14) << 4) |
-					    (((pixel >> 9) & 0x3) << 2) |
-					    ((pixel >> 3) & 0x3));
+	    // p->img[p->hdr.width * y + x] = (((pixel >> 14) << 4) |
+		// 			    (((pixel >> 9) & 0x3) << 2) |
+		// 			    ((pixel >> 3) & 0x3));
 	}
     }
 
@@ -571,6 +571,7 @@ read_photo (const char* fname)
 		{
 			red++;
 		}
+		//red=red/count;
 		int green=(val>>4);
 		green=green & 0xF;
 		green=(green<<2);
@@ -584,6 +585,7 @@ read_photo (const char* fname)
 		{
 			blue++;
 		}
+		//blue=blue/count;
 
 		p->palette[i][0]=(red<<1);
 		p->palette[i][1]=green;
