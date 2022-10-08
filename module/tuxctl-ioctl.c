@@ -26,6 +26,11 @@
 #include "tuxctl-ioctl.h"
 #include "mtcp.h"
 
+extern char tux_buffer[8];
+extern char tux_buffer_reset[8];
+extern unsigned char* mem_packet; 
+extern unsigned char button[2];
+
 #define debug(str, ...) \
 	printk(KERN_DEBUG "%s: " str, __FUNCTION__, ## __VA_ARGS__)
 
@@ -43,6 +48,13 @@ void tuxctl_handle_packet (struct tty_struct* tty, unsigned char* packet)
     a = packet[0]; /* Avoid printk() sign extending the 8-bit */
     b = packet[1]; /* values when printing them. */
     c = packet[2];
+
+	if(a==MTCP_POLL_OK)
+	{
+		button[0]=packet[1];
+		button[1]=packet[2];
+		return;
+	}
 
     /*printk("packet : %x %x %x\n", a, b, c); */
 }
@@ -65,14 +77,49 @@ tuxctl_ioctl (struct tty_struct* tty, struct file* file,
 	      unsigned cmd, unsigned long arg)
 {
     switch (cmd) {
-	case TUX_INIT:
+	case TUX_INIT://int a; //tuxinitialise();
 	case TUX_BUTTONS:
+					{
+						int ret=set_button(tty,cmd,arg);
+						return ret;
+					}
 	case TUX_SET_LED:
-	case TUX_LED_ACK:
-	case TUX_LED_REQUEST:
-	case TUX_READ_LED:
+	case TUX_LED_ACK:return -1;
+	case TUX_LED_REQUEST:return -1;
+	case TUX_READ_LED:return -1;
 	default:
 	    return -EINVAL;
     }
 }
+int set_button(struct tty_struct* tty,unsigned cmd, unsigned long arg)
+{
+	uint8_t button_val;
+	int temp2;
+
+	button_val = (button[1] & 0x1);
+	temp2=(button[1] & 0x4);
+	temp2=(temp2>>1);
+	button_val+=temp2;
+	temp2=(button[1] & 0x2);
+	temp2=(temp2<<1);
+	button_val+=temp2;
+	button_val+= (button[1] & 0x8);
+
+
+	button_val=(button_val<<4);
+	button_val+=(button[0] & 0xF);
+	unsigned long temp=__copy_to_user ((uint8_t*)arg,(& button_val),1);
+	//unsigned long temp=0;
+	if(temp>0)
+	{
+		return -EINVAL;
+	}
+	else
+	return 0;
+}
+// tuxinitialise:
+// {
+// 	int a;
+// 	return 0;
+// }
 
