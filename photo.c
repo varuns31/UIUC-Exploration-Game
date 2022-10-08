@@ -670,8 +670,6 @@ read_photo (const char* fname)
 			octree_level_2[ind2].blue=blue+octree_level_2[ind2].blue;
 			octree_level_2[ind2].count+=octree_level_4[4095-i].count;
 		}
-
-		int k=3;
 	}
 
 	for(i=0;i<64;i++)
