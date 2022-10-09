@@ -56,11 +56,11 @@ void tuxctl_handle_packet (struct tty_struct* tty, unsigned char* packet)
     b = packet[1]; /* values when printing them. */
     c = packet[2];
 
-	if(a==MTCP_BIOC_EVENT)
+	if(a==MTCP_BIOC_EVENT || a==MTCP_POLL_OK)
 	{
 		button[0]=packet[1];
 		button[1]=packet[2];
-		printk("Button1:%d Button2: %d",button[0],button[1]);
+		printk("Button1:%x Button2: %x\n",(button[0] & 0xf),(button[1] & 0xf));
 		return;
 	}
 
@@ -77,10 +77,11 @@ void tuxctl_handle_packet (struct tty_struct* tty, unsigned char* packet)
 			tux_buffer[i]=tux_buffer_reset[i];
 		}
 		char init_buffer[3];
-		// init_buffer[0]=MTCP_BIOC_ON;
-		// init_buffer[1]=MTCP_LED_USR;
-		// init_buffer[2]= MTCP_DBG_OFF;
-		// tuxctl_ldisc_put(tty,(char const*)init_buffer, 2);
+		init_buffer[0]=MTCP_BIOC_ON;
+		init_buffer[1]=MTCP_LED_USR;
+		init_buffer[2]= MTCP_DBG_OFF;
+		tuxctl_ldisc_put(tty,init_buffer, 3);
+		tuxctl_ldisc_put(tty,tux_buffer, 6);
 		return;
 	}
     //printk("packet : %x %x %x\n", a, b, c); */
@@ -118,6 +119,8 @@ int tuxinitialise(struct tty_struct* tty)
 	// init_buffer[5]= 0xff;
 	// init_buffer[6]= 0xff;
 	// init_buffer[7]= 0xff;
+	button[0]=0xF;
+	button[1]=0xF;
 	tuxctl_ldisc_put(tty, init_buffer, 3);
 	printk("SET LED SHOULD WORK");
 	return 0;
@@ -177,11 +180,6 @@ int set_led_func(struct tty_struct* tty,unsigned long arg)
 	second=arg & 0xF0;
 	third=arg & 0xF00;
 	fourth=arg & 0xF000;
-
-	for(i=0;i<6;i++)
-	{
-		tux_buffer_reset[i]=tux_buffer[i];
-	}
 
 	second=second>>4;
 	third=third>>8;
@@ -281,16 +279,14 @@ int set_led_func(struct tty_struct* tty,unsigned long arg)
 	// printk("%d",third_entry);
 	// printk("%d",fourth_entry);
 
+	for(i=0;i<6;i++)
+	{
+		tux_buffer_reset[i]=tux_buffer[i];
+	}
+
 	tuxctl_ldisc_put(tty,tux_buffer,6);
 	flag=0;
 
-	if(tux_buffer_reset[0]==0)
-	{
-		for(i=0;i<6;i++)
-		{
-			tux_buffer_reset[i]=tux_buffer[i];
-		}
-	}
 	return 0;
 }
 
