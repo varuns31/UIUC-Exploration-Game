@@ -59,14 +59,16 @@
 #include "module/tuxctl-ioctl.h"
 
 /* set to 1 and compile this file by itself to test functionality */
-#define TEST_INPUT_DRIVER 1
+#define TEST_INPUT_DRIVER 0
 
 /* set to 1 to use tux controller; otherwise, uses keyboard input */
-#define USE_TUX_CONTROLLER 0
+#define USE_TUX_CONTROLLER 1
 
 
 /* stores original terminal settings */
 static struct termios tio_orig;
+
+int fd;
 
 
 /* 
@@ -306,12 +308,40 @@ shutdown_input ()
  *   RETURN VALUE: none 
  *   SIDE EFFECTS: changes state of controller's display
  */
+
+void init_tux()
+{
+	fd=open("/dev/ttyS0", O_RDWR | O_NOCTTY);
+	int ldisc_num = N_MOUSE;
+	ioctl(fd, TIOCSETD, &ldisc_num);
+	ioctl(fd,TUX_INIT);
+	printf("TUX INITIALISED");
+	// int arg = 0x04039869;
+	// ioctl(fd,TUX_SET_LED,arg);
+}
 void
 display_time_on_tux (int num_seconds)
 {
-#if (USE_TUX_CONTROLLER != 0)
-#error "Tux controller code is not operational yet."
-#endif
+	int temp=num_seconds;
+	int ans;
+	int i;
+	int arg = 0x000f0000;
+	i=0;
+	if (USE_TUX_CONTROLLER != 0)
+	{
+		while(temp>0)
+		{
+			ans=temp%10;
+			ans=(ans<<(i*4));
+			arg=arg+ans;
+			temp=temp/10;
+			i++;
+		}	
+		//arg=arg+num_seconds;
+	    ioctl(fd,TUX_SET_LED,arg);
+	}
+//#error "Tux controller code is not operational yet."
+// #endif
 }
 
 

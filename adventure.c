@@ -266,6 +266,7 @@ game_loop ()
 		(void)pthread_mutex_unlock (&buf_lock);
 	}
 	show_screen ();
+	display_time_on_tux(cur_time.tv_sec);
 
 	/*
 	 * Wait for tick.  The tick defines the basic timing of our
@@ -274,6 +275,7 @@ game_loop ()
 	do {
 	    if (gettimeofday (&cur_time, NULL) != 0) {
 		/* Panic!  (should never happen) */
+		//display_time_on_tux(cur_time.tv_sec);
 		clear_mode_X ();
 		shutdown_input ();
 		perror ("gettimeofday");
@@ -300,6 +302,8 @@ game_loop ()
 	 * off to the nearest tick by definition.
 	 */
 	/* (none right now...) */
+
+	display_time_on_tux(cur_time.tv_sec-start_time.tv_sec);
 
 	/* 
 	 * Handle synchronous events--in this case, only player commands. 
@@ -774,6 +778,7 @@ main ()
 
     if (!build_world ()) {PANIC ("can't build world");}
     init_game ();
+	init_tux();
 
     /* Perform sanity checks. */
     if (0 != sanity_check ()) {
