@@ -30,6 +30,7 @@ extern char tux_buffer[6];
 extern char tux_buffer_reset[6];
 extern unsigned char* mem_packet; 
 extern unsigned char button[2];
+int flag=1;
 
 char hex_values[2][16]=
 {
@@ -55,13 +56,32 @@ void tuxctl_handle_packet (struct tty_struct* tty, unsigned char* packet)
     b = packet[1]; /* values when printing them. */
     c = packet[2];
 
-	if(a==MTCP_POLL_OK)
+	if(a==MTCP_BIOC_EVENT || a==MTCP_POLL_OK)
 	{
 		button[0]=packet[1];
 		button[1]=packet[2];
 		return;
 	}
 
+	if(a==MTCP_ACK)
+	{
+		flag=1;
+		return;
+	}
+	if(a==MTCP_RESET)
+	{
+		int i;
+		for(i=0;i<6;i++)
+		{
+			tux_buffer[i]=tux_buffer_reset[i];
+		}
+		char init_buffer[3];
+		init_buffer[0]=MTCP_BIOC_ON;
+		init_buffer[1]=MTCP_LED_USR;
+		init_buffer[2]= MTCP_DBG_OFF;
+		tuxctl_ldisc_put(tty,(char const*)init_buffer, 2);
+		return;
+	}
     /*printk("packet : %x %x %x\n", a, b, c); */
 }
 
@@ -82,20 +102,22 @@ void tuxctl_handle_packet (struct tty_struct* tty, unsigned char* packet)
 int tuxinitialise(struct tty_struct* tty)
 {
 	int i=0;
-	char init_buffer[2];
+	char init_buffer[3];
 	for(i=0;i<8;i++)
 	{
 		tux_buffer[i]=0;
 		tux_buffer_reset[i]=0;
 	}
-	init_buffer[0]=MTCP_BIOC_ON;
+	init_buffer[0]=MTCP_LED_SET;
 	init_buffer[1]=MTCP_LED_USR;
+	init_buffer[2]= MTCP_DBG_OFF;
 	tuxctl_ldisc_put(tty,(char const*)init_buffer, 2);
 	return 0;
 }
 
 int set_button(struct tty_struct* tty,unsigned cmd, unsigned long arg)
 {
+	
 	uint8_t button_val;
 	int temp2;
 	unsigned long temp;
@@ -124,25 +146,45 @@ int set_button(struct tty_struct* tty,unsigned cmd, unsigned long arg)
 
 int set_led_func(struct tty_struct* tty,unsigned long arg)
 {
-	int first=arg & 0xF;
-	int second=arg & 0xF0;
-	int third=arg & 0xF00;
-	int fourth=arg & 0xF000;
+	if(flag==0)
+	{
+		return 0;
+	}
+	int first;
+	int second;
+	int third;
+	int fourth;
 	int decimals[4];
 	int masking;
 	char first_entry;
 	char second_entry;
 	char third_entry;
 	char fourth_entry;
+	int i;
+
+	first=arg & 0xF;
+	second=arg & 0xF0;
+	third=arg & 0xF00;
+	fourth=arg & 0xF000;
+
+	for(i=0;i<6;i++)
+	{
+		tux_buffer_reset[i]=tux_buffer[i];
+	}
 
 	second=second>>4;
 	third=third>>8;
 	fourth=fourth>>12;
 
 	decimals[0]=arg & 0x1000000;
+	decimals[0]=decimals[0]>>24;
 	decimals[1]=arg & 0x2000000;
+	decimals[1]=decimals[1]>>25;
 	decimals[2]=arg & 0x4000000;
+	decimals[2]=decimals[2]>>26;
 	decimals[3]= arg & 0x8000000;
+	decimals[3]=decimals[3]>>27;
+
 
 	if(decimals[0]>0)
 	{
@@ -186,18 +228,34 @@ int set_led_func(struct tty_struct* tty,unsigned long arg)
 	if((masking & 0x1)==0)
 	{
 		first_entry=0;
+		if(decimals[0]>0)
+		{
+			first_entry=0x10;
+		}
 	}
 	if((masking & 0x2)==0)
 	{
 		second_entry=0;
+		if(decimals[1]>0)
+		{
+			second_entry=0x10;
+		}
 	}
 	if((masking & 0x4)==0)
 	{
 		third_entry=0;
+		if(decimals[2]>0)
+		{
+			third_entry=0x10;
+		}
 	}
 	if((masking & 0x8)==0)
 	{
 		fourth_entry=0;
+		if(decimals[3]>0)
+		{
+			fourth_entry=0x10;
+		}
 	}
 
 	tux_buffer[0]=MTCP_LED_SET;
@@ -208,6 +266,16 @@ int set_led_func(struct tty_struct* tty,unsigned long arg)
 	tux_buffer[5]=fourth_entry;
 
 	tuxctl_ldisc_put(tty,tux_buffer,6);
+	flag=0;
+
+
+	if(tux_buffer_reset[0]==0)
+	{
+		for(i=0;i<6;i++)
+		{
+			tux_buffer_reset[i]=tux_buffer[i];
+		}
+	}
 	return 0;
 
 }
