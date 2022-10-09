@@ -60,7 +60,7 @@ void tuxctl_handle_packet (struct tty_struct* tty, unsigned char* packet)
 	{
 		button[0]=packet[1];
 		button[1]=packet[2];
-		//printk("Button1:%d Button2: %d",button[0],button[1]);
+		printk("Button1:%d Button2: %d",button[0],button[1]);
 		return;
 	}
 
@@ -123,9 +123,12 @@ int tuxinitialise(struct tty_struct* tty)
 	return 0;
 }
 
-int set_button(struct tty_struct* tty,unsigned cmd, unsigned long arg)
+int set_button(struct tty_struct* tty,unsigned long arg)
 {
-	
+	if(arg==0)
+	{
+		return -EINVAL;
+	}
 	uint8_t button_val;
 	int temp2;
 	unsigned long temp;
@@ -281,7 +284,6 @@ int set_led_func(struct tty_struct* tty,unsigned long arg)
 	tuxctl_ldisc_put(tty,tux_buffer,6);
 	flag=0;
 
-
 	if(tux_buffer_reset[0]==0)
 	{
 		for(i=0;i<6;i++)
@@ -300,7 +302,7 @@ tuxctl_ioctl (struct tty_struct* tty, struct file* file,
 	case TUX_INIT:return tuxinitialise(tty);
 	case TUX_BUTTONS:
 					{
-						int ret=set_button(tty,cmd,arg);
+						int ret=set_button(tty,arg);
 						return ret;
 					}
 	case TUX_SET_LED:
