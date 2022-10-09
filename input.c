@@ -299,16 +299,6 @@ shutdown_input ()
 }
 
 
-/* 
- * display_time_on_tux
- *   DESCRIPTION: Show number of elapsed seconds as minutes:seconds
- *                on the Tux controller's 7-segment displays.
- *   INPUTS: num_seconds -- total seconds elapsed so far
- *   OUTPUTS: none
- *   RETURN VALUE: none 
- *   SIDE EFFECTS: changes state of controller's display
- */
-
 void init_tux()
 {
 	fd=open("/dev/ttyS0", O_RDWR | O_NOCTTY);
@@ -319,24 +309,36 @@ void init_tux()
 	// int arg = 0x04039869;
 	// ioctl(fd,TUX_SET_LED,arg);
 }
+
+/* 
+ * display_time_on_tux
+ *   DESCRIPTION: Show number of elapsed seconds as minutes:seconds
+ *                on the Tux controller's 7-segment displays.
+ *   INPUTS: num_seconds -- total seconds elapsed so far
+ *   OUTPUTS: none
+ *   RETURN VALUE: none 
+ *   SIDE EFFECTS: changes state of controller's display
+ */
 void
 display_time_on_tux (int num_seconds)
 {
-	int temp=num_seconds;
+	int secs=num_seconds%60;
+	int mins=num_seconds/60;
 	int ans;
 	int i;
-	int arg = 0x000f0000;
+	int arg = 0x04070000;
 	i=0;
 	if (USE_TUX_CONTROLLER != 0)
 	{
-		while(temp>0)
+		while(secs>0)
 		{
-			ans=temp%10;
+			ans=secs%10;
 			ans=(ans<<(i*4));
 			arg=arg+ans;
-			temp=temp/10;
+			secs=secs/10;
 			i++;
 		}	
+		arg=arg+(mins<<8);
 		//arg=arg+num_seconds;
 	    ioctl(fd,TUX_SET_LED,arg);
 	}
