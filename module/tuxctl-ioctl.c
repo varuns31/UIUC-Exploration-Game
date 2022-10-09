@@ -56,10 +56,11 @@ void tuxctl_handle_packet (struct tty_struct* tty, unsigned char* packet)
     b = packet[1]; /* values when printing them. */
     c = packet[2];
 
-	if(a==MTCP_BIOC_EVENT || a==MTCP_POLL_OK)
+	if(a==MTCP_BIOC_EVENT)
 	{
 		button[0]=packet[1];
 		button[1]=packet[2];
+		//printk("Button1:%d Button2: %d",button[0],button[1]);
 		return;
 	}
 
@@ -76,13 +77,13 @@ void tuxctl_handle_packet (struct tty_struct* tty, unsigned char* packet)
 			tux_buffer[i]=tux_buffer_reset[i];
 		}
 		char init_buffer[3];
-		init_buffer[0]=MTCP_BIOC_ON;
-		init_buffer[1]=MTCP_LED_USR;
-		init_buffer[2]= MTCP_DBG_OFF;
-		tuxctl_ldisc_put(tty,(char const*)init_buffer, 2);
+		// init_buffer[0]=MTCP_BIOC_ON;
+		// init_buffer[1]=MTCP_LED_USR;
+		// init_buffer[2]= MTCP_DBG_OFF;
+		// tuxctl_ldisc_put(tty,(char const*)init_buffer, 2);
 		return;
 	}
-    /*printk("packet : %x %x %x\n", a, b, c); */
+    //printk("packet : %x %x %x\n", a, b, c); */
 }
 
 /******** IMPORTANT NOTE: READ THIS BEFORE IMPLEMENTING THE IOCTLS ************
@@ -108,10 +109,17 @@ int tuxinitialise(struct tty_struct* tty)
 		tux_buffer[i]=0;
 		tux_buffer_reset[i]=0;
 	}
-	init_buffer[0]=MTCP_LED_SET;
+	init_buffer[0]=MTCP_BIOC_ON;
 	init_buffer[1]=MTCP_LED_USR;
 	init_buffer[2]= MTCP_DBG_OFF;
-	tuxctl_ldisc_put(tty,(char const*)init_buffer, 2);
+	//init_buffer[2]= MTCP_LED_SET;
+	// init_buffer[3]= 0x0f;
+	// init_buffer[4]= 0xff;
+	// init_buffer[5]= 0xff;
+	// init_buffer[6]= 0xff;
+	// init_buffer[7]= 0xff;
+	tuxctl_ldisc_put(tty, init_buffer, 3);
+	printk("SET LED SHOULD WORK");
 	return 0;
 }
 
@@ -265,6 +273,11 @@ int set_led_func(struct tty_struct* tty,unsigned long arg)
 	tux_buffer[4]=third_entry;
 	tux_buffer[5]=fourth_entry;
 
+	// printk("%d",first_entry);
+	// printk("%d",second_entry);
+	// printk("%d",third_entry);
+	// printk("%d",fourth_entry);
+
 	tuxctl_ldisc_put(tty,tux_buffer,6);
 	flag=0;
 
@@ -277,7 +290,6 @@ int set_led_func(struct tty_struct* tty,unsigned long arg)
 		}
 	}
 	return 0;
-
 }
 
 int 

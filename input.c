@@ -56,9 +56,10 @@
 
 #include "assert.h"
 #include "input.h"
+#include "module/tuxctl-ioctl.h"
 
 /* set to 1 and compile this file by itself to test functionality */
-#define TEST_INPUT_DRIVER 0
+#define TEST_INPUT_DRIVER 1
 
 /* set to 1 to use tux controller; otherwise, uses keyboard input */
 #define USE_TUX_CONTROLLER 0
@@ -331,14 +332,30 @@ main ()
 	return 3;
     }
 
+	int fd = open("/dev/ttyS0", O_RDWR | O_NOCTTY);
+	int ldisc_num = N_MOUSE;
+	ioctl(fd, TIOCSETD, &ldisc_num);
+
+	printf("whats up");
+
+	ioctl(fd,TUX_INIT);
+	int arg = 0x04039869;
+	ioctl(fd, TUX_SET_LED, arg);
+
+	arg = 0x040f9869;
+	ioctl(fd, TUX_SET_LED, arg);
+
+
     init_input ();
-    while (1) {
-        while ((cmd = get_command ()) == last_cmd);
-	last_cmd = cmd;
-	printf ("command issued: %s\n", cmd_name[cmd]);
-	if (cmd == CMD_QUIT)
-	    break;
-	display_time_on_tux (83);
+
+	while (1) {
+
+        // while ((cmd = get_command ()) == last_cmd);
+		// last_cmd = cmd;
+		// printf ("command issued: %s\n", cmd_name[cmd]);
+		// if (cmd == CMD_QUIT)
+		// 	break;
+		// display_time_on_tux (83);
     }
     shutdown_input ();
     return 0;
