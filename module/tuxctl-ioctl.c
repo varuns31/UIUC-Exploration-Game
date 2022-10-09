@@ -26,8 +26,8 @@
 #include "tuxctl-ioctl.h"
 #include "mtcp.h"
 
-extern char tux_buffer[8];
-extern char tux_buffer_reset[8];
+extern char tux_buffer[6];
+extern char tux_buffer_reset[6];
 extern unsigned char* mem_packet; 
 extern unsigned char button[2];
 
@@ -122,6 +122,96 @@ int set_button(struct tty_struct* tty,unsigned cmd, unsigned long arg)
 	return 0;
 }
 
+int set_led_func(struct tty_struct* tty,unsigned long arg)
+{
+	int first=arg & 0xF;
+	int second=arg & 0xF0;
+	int third=arg & 0xF00;
+	int fourth=arg & 0xF000;
+	int decimals[4];
+	int masking;
+	char first_entry;
+	char second_entry;
+	char third_entry;
+	char fourth_entry;
+
+	second=second>>4;
+	third=third>>8;
+	fourth=fourth>>12;
+
+	decimals[0]=arg & 0x1000000;
+	decimals[1]=arg & 0x2000000;
+	decimals[2]=arg & 0x4000000;
+	decimals[3]= arg & 0x8000000;
+
+	if(decimals[0]>0)
+	{
+		first_entry=hex_values[1][first];
+	}
+	else
+	{
+		first_entry=hex_values[0][first];
+	}
+
+	if(decimals[1]>0)
+	{
+		second_entry=hex_values[1][second];
+	}
+	else
+	{
+		second_entry=hex_values[0][second];
+	}
+
+	if(decimals[2]>0)
+	{
+		third_entry=hex_values[1][third];
+	}
+	else
+	{
+		third_entry=hex_values[0][third];
+	}
+
+	if(decimals[3]>0)
+	{
+		fourth_entry=hex_values[1][fourth];
+	}
+	else
+	{
+		fourth_entry=hex_values[0][fourth];
+	}
+
+	masking=arg & 0xF0000;
+	masking=masking>>16;
+
+	if((masking & 0x1)==0)
+	{
+		first_entry=0;
+	}
+	if((masking & 0x2)==0)
+	{
+		second_entry=0;
+	}
+	if((masking & 0x4)==0)
+	{
+		third_entry=0;
+	}
+	if((masking & 0x8)==0)
+	{
+		fourth_entry=0;
+	}
+
+	tux_buffer[0]=MTCP_LED_SET;
+	tux_buffer[1]=0xF;
+	tux_buffer[2]=first_entry;
+	tux_buffer[3]=second_entry;
+	tux_buffer[4]=third_entry;
+	tux_buffer[5]=fourth_entry;
+
+	tuxctl_ldisc_put(tty,tux_buffer,6);
+	return 0;
+
+}
+
 int 
 tuxctl_ioctl (struct tty_struct* tty, struct file* file, 
 	      unsigned cmd, unsigned long arg)
@@ -134,6 +224,10 @@ tuxctl_ioctl (struct tty_struct* tty, struct file* file,
 						return ret;
 					}
 	case TUX_SET_LED:
+					{
+						int ret=set_led_func(tty,arg);
+						return ret;
+					}
 	case TUX_LED_ACK:return -1;
 	case TUX_LED_REQUEST:return -1;
 	case TUX_READ_LED:return -1;
