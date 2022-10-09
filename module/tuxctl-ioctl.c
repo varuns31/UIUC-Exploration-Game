@@ -31,6 +31,12 @@ extern char tux_buffer_reset[8];
 extern unsigned char* mem_packet; 
 extern unsigned char button[2];
 
+char hex_values[2][16]=
+{
+{0xE7,0x06,0xCB,0x8F,0x2E,0xAD,0xED,0x86,0xEF,0xAE,0xEE,0x6D,0xE1,0x4F,0xEB,0xE8},
+{0XF7,0x16,0xDB,0x9F,0x3E,0xBD,0xFD,0x96,0xFF,0xBE,0xFE,0x7D,0xF1,0x5F,0xFB,0xF8}
+};
+
 #define debug(str, ...) \
 	printk(KERN_DEBUG "%s: " str, __FUNCTION__, ## __VA_ARGS__)
 
@@ -72,29 +78,27 @@ void tuxctl_handle_packet (struct tty_struct* tty, unsigned char* packet)
  * valid.                                                                     *
  *                                                                            *
  ******************************************************************************/
-int 
-tuxctl_ioctl (struct tty_struct* tty, struct file* file, 
-	      unsigned cmd, unsigned long arg)
+
+int tuxinitialise(struct tty_struct* tty)
 {
-    switch (cmd) {
-	case TUX_INIT://int a; //tuxinitialise();
-	case TUX_BUTTONS:
-					{
-						int ret=set_button(tty,cmd,arg);
-						return ret;
-					}
-	case TUX_SET_LED:
-	case TUX_LED_ACK:return -1;
-	case TUX_LED_REQUEST:return -1;
-	case TUX_READ_LED:return -1;
-	default:
-	    return -EINVAL;
-    }
+	int i=0;
+	char init_buffer[2];
+	for(i=0;i<8;i++)
+	{
+		tux_buffer[i]=0;
+		tux_buffer_reset[i]=0;
+	}
+	init_buffer[0]=MTCP_BIOC_ON;
+	init_buffer[1]=MTCP_LED_USR;
+	tuxctl_ldisc_put(tty,(char const*)init_buffer, 2);
+	return 0;
 }
+
 int set_button(struct tty_struct* tty,unsigned cmd, unsigned long arg)
 {
 	uint8_t button_val;
 	int temp2;
+	unsigned long temp;
 
 	button_val = (button[1] & 0x1);
 	temp2=(button[1] & 0x4);
@@ -108,7 +112,7 @@ int set_button(struct tty_struct* tty,unsigned cmd, unsigned long arg)
 
 	button_val=(button_val<<4);
 	button_val+=(button[0] & 0xF);
-	unsigned long temp=__copy_to_user ((uint8_t*)arg,(& button_val),1);
+	temp=__copy_to_user ((uint8_t*)arg,(& button_val),1);
 	//unsigned long temp=0;
 	if(temp>0)
 	{
@@ -116,6 +120,26 @@ int set_button(struct tty_struct* tty,unsigned cmd, unsigned long arg)
 	}
 	else
 	return 0;
+}
+
+int 
+tuxctl_ioctl (struct tty_struct* tty, struct file* file, 
+	      unsigned cmd, unsigned long arg)
+{
+    switch (cmd) {
+	case TUX_INIT:return tuxinitialise(tty);
+	case TUX_BUTTONS:
+					{
+						int ret=set_button(tty,cmd,arg);
+						return ret;
+					}
+	case TUX_SET_LED:
+	case TUX_LED_ACK:return -1;
+	case TUX_LED_REQUEST:return -1;
+	case TUX_READ_LED:return -1;
+	default:
+	    return -EINVAL;
+    }
 }
 // tuxinitialise:
 // {

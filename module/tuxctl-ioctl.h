@@ -10,5 +10,10 @@
 #define TUX_LED_REQUEST _IO('E', 0x14)
 #define TUX_LED_ACK _IO('E', 0x15)
 
+char tux_buffer[8];
+char tux_buffer_reset[8]; 
+unsigned char* mem_packet; 
+unsigned char button[2];
+
 #endif
 
