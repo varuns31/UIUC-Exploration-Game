@@ -1,3 +1,4 @@
+
 /*									tab:8
  *
  * adventure.c - main source file for ECE391 adventure game (F11 MP2)
@@ -150,6 +151,7 @@ static int time_is_after (struct timeval* t1, struct timeval* t2);
 
 static game_info_t game_info; /* game information */
 extern void init_tux();
+extern cmd_t get_tux_command();
 
 /* 
  * The variables below are used to keep track of the status message helper
@@ -312,8 +314,11 @@ game_loop ()
 	 * Note that typed commands that move objects may cause the room
 	 * to be redrawn.
 	 */
-	
 	cmd = get_command ();
+	if(cmd==CMD_NONE)
+	{
+		cmd=get_tux_command();
+	}
 	switch (cmd) {
 	    case CMD_UP:    move_photo_down ();  break;
 	    case CMD_RIGHT: move_photo_left ();  break;

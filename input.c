@@ -160,7 +160,75 @@ typed_a_char (char c)
 	typing[len + 1] = '\0';
     }
 }
+/* 
+ * get_tux_command
+ *   DESCRIPTION: Reads a command from the tux controller.  As some
+ *                controllers provide only absolute input (e.g., go
+ *                right), the current direction is needed as an input
+ *                to this routine.
+ *   INPUTS: cur_dir -- current direction of motion
+ *   OUTPUTS: none
+ *   RETURN VALUE: command issued by the input controller
+ *   SIDE EFFECTS: drains any keyboard input
+ */
+cmd_t 
+get_tux_command ()
+{
+	#if (USE_TUX_CONTROLLER == 0) 
+#endif
+    static cmd_t command = CMD_NONE;
+    cmd_t pushed = CMD_NONE;
+    int ch;
 
+    /* Read all characters from stdin. */
+    while ((ch = getc (stdin)) != EOF) {
+
+	/* Backquote is used to quit the game. */
+	if (ch == '`')
+	    return CMD_QUIT;
+	
+
+	/* Tux controller mode; still need to support typed commands. */
+	if (valid_typing (ch)) {
+	    typed_a_char (ch);
+	} else if (10 == ch || 13 == ch) {
+	    pushed = CMD_TYPED;
+	}
+}
+
+
+	uint8_t pressed;
+	ioctl(fd,TUX_BUTTONS,&pressed);
+	switch(pressed)
+	{
+		
+	case 0xfe:pushed = CMD_QUIT;break;//Active Low condition with start pushed
+
+	case 0xfd:if(flag!=0){pushed = CMD_MOVE_LEFT;flag=0;}break;//Active Low condition with insert pushed
+
+	case 0xfb:if(flag!=0){pushed =CMD_ENTER;flag=0;}break;//Active Low condition with home pushed
+
+	case 0xf7:if(flag!=0){pushed = CMD_MOVE_RIGHT;flag=0;}break;//Active Low condition with pgup pushed
+
+	case 0xef:pushed=CMD_UP;flag=1;break;//Active Low condition with up arrow pushed
+
+	case 0xdf:pushed=CMD_DOWN;flag=1;break;//Active Low condition with down arrow pushed
+
+	case 0xbf:pushed=CMD_LEFT;flag=1;break;//Active Low condition with left arrow pushed
+
+	case 0x7f:pushed=CMD_RIGHT;flag=1;break;//Active Low condition with right arrow pushed
+
+	}
+
+    /*
+     * Once a direction is pushed, that command remains active
+     * until a turn is taken.
+     */
+    if (pushed == CMD_NONE) {
+        command = CMD_NONE;
+    }
+    return pushed;
+}
 /* 
  * get_command
  *   DESCRIPTION: Reads a command from the input controller.  As some
@@ -275,35 +343,6 @@ get_command ()
 
 #endif /* USE_TUX_CONTROLLER */
 }
-
-
-	uint8_t pressed;
-	ioctl(fd,TUX_BUTTONS,&pressed);
-	switch(pressed)
-	{
-
-	case 0xff:pushed == CMD_NONE;flag=1;break;//Active Low condition with nothing pushed
-
-	case 0xfe:pushed = CMD_QUIT;break;//Active Low condition with start pushed
-
-	case 0xfd:if(flag!=0){pushed = CMD_MOVE_LEFT;flag=0;}break;//Active Low condition with insert pushed
-
-	case 0xfb:if(flag!=0){pushed =CMD_ENTER;flag=0;}break;//Active Low condition with home pushed
-
-	case 0xf7:if(flag!=0){pushed = CMD_MOVE_RIGHT;flag=0;}break;//Active Low condition with pgup pushed
-
-	case 0xef:pushed=CMD_UP;flag=1;break;//Active Low condition with up arrow pushed
-
-	case 0xdf:pushed=CMD_DOWN;flag=1;break;//Active Low condition with down arrow pushed
-
-	case 0xbf:pushed=CMD_LEFT;flag=1;break;//Active Low condition with left arrow pushed
-
-	case 0x7f:pushed=CMD_RIGHT;flag=1;break;//Active Low condition with right arrow pushed
-
-	default:pushed == CMD_NONE;flag=1;break;//Active Low condition with nothing pushed
-
-	}
-
     /*
      * Once a direction is pushed, that command remains active
      * until a turn is taken.
@@ -434,4 +473,3 @@ main ()
     return 0;
 }
 #endif
-
