@@ -1,16 +1,69 @@
-Bugs in the program
+*Bugs in the program*
+
 1)
-I was incrementing address by 1 to get to the next pixel but needed to add 
-scroll_size as it was the pixel in the next row
+Problem:
+I was incrementing address by 1 to get to the next pixel when calculating the pixel in the buffer for vertical line function 
+Solution:
+You need to add scroll_size as it was the pixel in the next row
+
 2)
+Problem:
 VGA Register value set to 16C instead of 16B. this error was because 182*2=364 which
-is 16C in hex but we needed the horizontal divide just above that so 16C was making
-me lose part of my status bar.
+is 16C in hex was set and I was losing part of my status bar.
+Solution:
+We needed the horizontal divide just above 16B as line divide is between to rows and not a row by itself
+
 3)
-Passing in a const char* (without type casting it) as argument gave warning.
+Problem:
+Passing in a const char* as argument gave warning.
+Solution:
+Pass Argument after typecasting it
+
 4)
-I was not using extern on my status bar buffer and I was creating
-a local instance of it in my text.c so my original buffer
+Problem:
+I was creating a local instance of my status bar buffer in my text.c so my original buffer
 was not getting updated
-5)My pixel panning mode set to 1 was still allowing scrolling but I forgot to 
-set the register after initialization instead of during which caused the problem.
+Solution:
+Use extern on my status bar buffer decleration in text.c and include modex.c in text.c
+
+5)
+Problem:
+Octree level 4 gave a blackish picture even though after checking first few values of palette, they were correct
+
+Solution:
+Initialise level4 buffer to 0s as it will give error otherwise even if GDB says its all 0s in one instance of the program running
+
+6)
+Problem:
+Octree level 2 didn't give desired output causing minor issues in the image
+
+Solution:
+while filling in level 2 make sure to add to current running sum instead of normal assignment unless its the first pixel in the node
+
+7)
+Problem:
+Tux controller gave opposing values for left and down buttons
+
+Solution:
+Values received from tux and sent to user have different orders that need to be accounted for
+
+8)
+Problem:
+Keyboard and tux doesn't work in the same run
+
+Solution:
+Both flags in input.c need to be set to 0. The flag USE_TUX is basically just USE_ONLY_TUX
+
+9)
+Problem:
+Buttons made screen move uncontrollably when program was run
+
+Solution:
+Buttons are active low and should be initialised to all 1s instead of all 0s
+
+10)
+Problem:
+Insert,Home,Pgup buttons shouldn't change screens if long pressed
+
+Solution:
+Mantain a flag that doesn't allow the same button to continue to function.
