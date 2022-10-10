@@ -218,6 +218,8 @@ get_tux_command ()
 
 	case 0x7f:pushed=CMD_RIGHT;flag=1;break;//Active Low condition with right arrow pushed
 
+	default:flag=1;break;
+
 	}
 
     /*
