@@ -45,14 +45,12 @@
 #include <sys/time.h>
 #include <time.h>
 
-
 #include "assert.h"
 #include "input.h"
 #include "modex.h"
 #include "photo.h"
 #include "text.h"
 #include "world.h"
-
  
 /*
  * If NDEBUG is not defined, we execute sanity checks to make sure that
@@ -60,21 +58,13 @@
  */
 
 #if defined(NDEBUG)
-
 #define sanity_check() 0
-
 #else
-
 static int sanity_check (void);
-
 #endif
-
 /* a few constants */
-
 #define TICK_USEC      50000 /* tick length in microseconds          */
-
 #define STATUS_MSG_LEN 40    /* maximum length of status message     */
-
 #define MOTION_SPEED   2     /* pixels moved per command             */
 
 /* outcome of the game */
@@ -145,7 +135,6 @@ static const typed_cmd_t cmd_list[] = {
     {"wear",      4, TC_WEAR},
     {NULL, 0, 0}
 };
-
 /* local functions--see function headers for details */
 
 static void cancel_status_thread (void* ignore);
@@ -161,15 +150,13 @@ static void* status_thread (void* ignore);
 static int time_is_after (struct timeval* t1, struct timeval* t2);
 static void cancel_tux_thread (void* ignore);
 static void* tux_thread (void* ignore);
-
+extern cmd_t get_tux_command();
 
 static cmd_t cmd, tux_command;
 
 /* file-scope variables */
 
-
 static game_info_t game_info; /* game information */
-
 
 /*
  * The variables below are used to keep track of the status message helper
@@ -389,7 +376,7 @@ static game_condition_t game_loop () {
      * to be redrawn.
      */
 
-    tux_command = get_tux_command ();
+    tux_command = get_tux_command();
 
     pthread_mutex_lock(&lock);
 

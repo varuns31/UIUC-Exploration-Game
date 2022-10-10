@@ -388,7 +388,7 @@ display_time_on_tux (int num_seconds)
 		mins=mins%10;
 		arg=arg + 0x80000;
 		arg=arg + (ans<<12);
-		arg=arg & 0xfffff0ff;
+		arg=arg & 0xfffff0ff;//bitmask logic
 	}
 	while(secs>0)
 	{
@@ -396,7 +396,7 @@ display_time_on_tux (int num_seconds)
 		ans=(ans<<(i*4));
 		arg=arg+ans;
 		secs=secs/10;
-		i++;
+		i++;//bitmask logic
 	}	
 	arg=arg+(mins<<8);
 
