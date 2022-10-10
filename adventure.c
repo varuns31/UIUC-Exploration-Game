@@ -174,7 +174,54 @@ static pthread_cond_t  msg_cv = PTHREAD_COND_INITIALIZER;
 static char status_msg[STATUS_MSG_LEN + 1] = {'\0'};
 
 extern unsigned char status_buffer[4][STATUSBAR_PLANE_SIZE];
+int buttons_pressed;
+static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t cv = PTHREAD_COND_INITIALIZER;
 
+
+
+void* tux_thread(void * arg)
+{
+	cmd_t cmd;
+	int32_t enter_room;      /* player has changed rooms        */
+	while (1) 
+	{
+		pthread_mutex_lock(&lock);
+		while (!buttons_pressed)
+		{
+			pthread_cond_wait(&cv, &lock);
+		}
+		cmd=get_tux_command();
+		switch (cmd) 
+		{
+			case CMD_UP:    move_photo_down ();  break;
+			case CMD_RIGHT: move_photo_left ();  break;
+			case CMD_DOWN:  move_photo_up ();    break;
+			case CMD_LEFT:  move_photo_right (); break;
+			case CMD_MOVE_LEFT:   
+			enter_room = (TC_CHANGE_ROOM == 
+					try_to_move_left (&game_info.where));
+			break;
+			case CMD_ENTER:
+			enter_room = (TC_CHANGE_ROOM ==
+					try_to_enter (&game_info.where));
+			break;
+			case CMD_MOVE_RIGHT:
+			enter_room = (TC_CHANGE_ROOM == 
+					try_to_move_right (&game_info.where));
+			break;
+			case CMD_TYPED:
+			if (handle_typing ()) {
+				enter_room = 1;
+			}
+			break;
+			case CMD_QUIT: return GAME_QUIT;
+			default: break;
+		}
+		pthread_mutex_unlock(&lock);
+	}
+	return NULL;
+}
 
 /* 
  * cancel_status_thread
@@ -225,6 +272,7 @@ game_loop ()
 
     /* The player has just entered the first room. */
     enter_room = 1;
+	buttons_pressed=0;
 
     /* The main event loop. */
     while (1) {
@@ -314,11 +362,16 @@ game_loop ()
 	 * Note that typed commands that move objects may cause the room
 	 * to be redrawn.
 	 */
-	cmd = get_command ();
-	if(cmd==CMD_NONE)
-	{
-		cmd=get_tux_command();
+	cmd=get_tux_command();
+	if(cmd!=CMD_NONE)buttons_pressed=1;
+	pthread_mutex_lock(&lock);
+	if (buttons_pressed){
+	pthread_cond_signal(&
+	cv);
 	}
+	pthread_mutex_unlock(&lock);
+
+	cmd = get_command ();
 	switch (cmd) {
 	    case CMD_UP:    move_photo_down ();  break;
 	    case CMD_RIGHT: move_photo_left ();  break;
