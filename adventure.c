@@ -265,8 +265,10 @@ game_loop ()
 		show_status_bar((char *)room_name(game_info.where),(char *)get_typed_command(),"\0");
 		(void)pthread_mutex_unlock (&buf_lock);
 	}
+
 	show_screen ();
-	display_time_on_tux(cur_time.tv_sec);
+
+	//display_time_on_tux(cur_time.tv_sec);
 
 	/*
 	 * Wait for tick.  The tick defines the basic timing of our

@@ -60,7 +60,7 @@ void tuxctl_handle_packet (struct tty_struct* tty, unsigned char* packet)
 	{
 		button[0]=packet[1];
 		button[1]=packet[2];
-		printk("Button1:%x Button2: %x\n",(button[0] & 0xf),(button[1] & 0xf));
+		//printk("Button1:%x Button2: %x\n",(button[0] & 0xf),(button[1] & 0xf));
 		return;
 	}
 
@@ -122,7 +122,7 @@ int tuxinitialise(struct tty_struct* tty)
 	button[0]=0xF;
 	button[1]=0xF;
 	tuxctl_ldisc_put(tty, init_buffer, 3);
-	printk("SET LED SHOULD WORK");
+	//printk("SET LED SHOULD WORK");
 	return 0;
 }
 
