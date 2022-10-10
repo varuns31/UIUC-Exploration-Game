@@ -62,7 +62,7 @@
 #define TEST_INPUT_DRIVER 0
 
 /* set to 1 to use tux controller; otherwise, uses keyboard input */
-#define USE_TUX_CONTROLLER 1
+#define USE_TUX_CONTROLLER 0
 
 
 /* stores original terminal settings */
@@ -276,35 +276,33 @@ get_command ()
 #endif /* USE_TUX_CONTROLLER */
 }
 
-	if(USE_TUX_CONTROLLER!=0)
+
+	uint8_t pressed;
+	ioctl(fd,TUX_BUTTONS,&pressed);
+	switch(pressed)
 	{
-		uint8_t pressed;
-		ioctl(fd,TUX_BUTTONS,&pressed);
-		switch(pressed)
-		{
-		case 0xff:pushed == CMD_NONE;flag=1;break;
 
-		case 0xfe:pushed = CMD_QUIT;break;
+	case 0xff:pushed == CMD_NONE;flag=1;break;
 
-		case 0xfd:if(flag!=0){pushed = CMD_MOVE_LEFT;flag=0;}break;
+	case 0xfe:pushed = CMD_QUIT;break;
 
-		case 0xfb:if(flag!=0){pushed =CMD_ENTER;flag=0;}break;
+	case 0xfd:if(flag!=0){pushed = CMD_MOVE_LEFT;flag=0;}break;
 
-		case 0xf7:if(flag!=0){pushed = CMD_MOVE_RIGHT;flag=0;}break;
+	case 0xfb:if(flag!=0){pushed =CMD_ENTER;flag=0;}break;
 
-		case 0xef:pushed=CMD_UP;flag=1;break;
+	case 0xf7:if(flag!=0){pushed = CMD_MOVE_RIGHT;flag=0;}break;
 
-		case 0xdf:pushed=CMD_DOWN;flag=1;break;
+	case 0xef:pushed=CMD_UP;flag=1;break;
 
-		case 0xbf:pushed=CMD_LEFT;flag=1;break;
+	case 0xdf:pushed=CMD_DOWN;flag=1;break;
 
-		case 0x7f:pushed=CMD_RIGHT;flag=1;break;
+	case 0xbf:pushed=CMD_LEFT;flag=1;break;
 
-		default:pushed == CMD_NONE;flag=1;break;
-		}
+	case 0x7f:pushed=CMD_RIGHT;flag=1;break;
+
+	default:pushed == CMD_NONE;flag=1;break;
+
 	}
-	
-
 
     /*
      * Once a direction is pushed, that command remains active
@@ -362,20 +360,18 @@ display_time_on_tux (int num_seconds)
 	int i;
 	int arg = 0x04070000;
 	i=0;
-	if (USE_TUX_CONTROLLER != 0)
+	while(secs>0)
 	{
-		while(secs>0)
-		{
-			ans=secs%10;
-			ans=(ans<<(i*4));
-			arg=arg+ans;
-			secs=secs/10;
-			i++;
-		}	
-		arg=arg+(mins<<8);
-		//arg=arg+num_seconds;
-	    ioctl(fd,TUX_SET_LED,arg);
-	}
+		ans=secs%10;
+		ans=(ans<<(i*4));
+		arg=arg+ans;
+		secs=secs/10;
+		i++;
+	}	
+	arg=arg+(mins<<8);
+	//arg=arg+num_seconds;
+	ioctl(fd,TUX_SET_LED,arg);
+
 //#error "Tux controller code is not operational yet."
 // #endif
 }

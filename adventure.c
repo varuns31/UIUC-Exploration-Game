@@ -149,7 +149,7 @@ static int time_is_after (struct timeval* t1, struct timeval* t2);
 /* file-scope variables */
 
 static game_info_t game_info; /* game information */
-
+extern void init_tux();
 
 /* 
  * The variables below are used to keep track of the status message helper
