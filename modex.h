@@ -141,6 +141,6 @@ extern int draw_horiz_line (int y);
 /* draw a vertical line at horizontal pixel x within the logical view window */
 extern int draw_vert_line (int x);
 
-extern void copypalletetoVGA(uint8_t* pallette);
+extern void copypalletetoVGA(uint8_t* pallette);//copy pallette to Vga memory 
 
 #endif /* MODEX_H */

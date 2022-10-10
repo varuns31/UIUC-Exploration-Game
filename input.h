@@ -70,6 +70,6 @@ extern void shutdown_input ();
  */
 extern void display_time_on_tux (int num_seconds);
 
-extern void init_tux();
+extern void init_tux();//initialise tux
 
 #endif /* INPUT_H */

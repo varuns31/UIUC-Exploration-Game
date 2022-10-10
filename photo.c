@@ -85,6 +85,8 @@ struct image_t {
  * by calling prep_room.
  */
 
+
+/*Octree struct that mantains running sum of least significant bits of r,g,b count of pixels and index before sort*/
 typedef struct {
     int count;
     int red;
@@ -93,8 +95,8 @@ typedef struct {
     int index;
 }octree_t;
 
-octree_t octree_level_4[4096];
-octree_t octree_level_2[64];
+octree_t octree_level_4[4096];//level 4 with 4096 different nodes
+octree_t octree_level_2[64];//level 2 with 64 different nodes
 
 
 /* 
@@ -109,6 +111,7 @@ int comparator(const void* a,const void*b)
 {
     octree_t* anew = (octree_t*) a;
     octree_t* bnew = (octree_t*) b;
+	/*Returns if a>b*/
     return anew->count - bnew->count;
 }
 
@@ -123,7 +126,7 @@ int comparator(const void* a,const void*b)
 int pixelintooctree(u_int16_t num,int a)
 {
     int index;
-    int red_val=(num>>11);
+    int red_val=(num>>11);//find least sig bit of red
 
     index=(red_val>>1);
     red_val=(red_val & 0x0001);
@@ -134,15 +137,16 @@ int pixelintooctree(u_int16_t num,int a)
     index=(index<<4);
     index+=(green_val>>2);
 
-    green_val=(green_val & 0x0003);
+    green_val=(green_val & 0x0003);//find least 2 sig bit of green
 
     int blue_val=num & (0x001F);
 
     index=(index<<4);
     index+=(blue_val>>1);
 
-    blue_val=(blue_val & 0x01);
+    blue_val=(blue_val & 0x01);//find least sig bit of blue
 
+	//push pixel into octree
 	if(a==0)
 	{
 		octree_level_4[index].count++;
@@ -391,7 +395,7 @@ prep_room (const room_t* r)
 	photo_t* view =room_photo(r);
 	//map_frequency(view->img,(view->hdr.height*view->hdr.width));
 	
-	copypalletetoVGA((uint8_t*) view->palette);
+	copypalletetoVGA((uint8_t*) view->palette);//Add created palette to vga palette
 
     /* Record the current room. */
     cur_room = r;
@@ -522,6 +526,8 @@ read_photo (const char* fname)
 	}
 	return NULL;
     }
+
+	//initialise global octree arrays to 0
 	for(i=0;i<4096;i++)
 	{
 		octree_level_4[i].index=i;
@@ -558,6 +564,8 @@ read_photo (const char* fname)
 		return NULL;
 
 	    }
+
+		//add pixel to octree
 		pixelintooctree(pixel,0);
 	    /* 
 	     * 16-bit pixel is coded as 5:6:5 RGB (5 bits red, 6 bits green,
@@ -576,12 +584,14 @@ read_photo (const char* fname)
 	}
     }
 
+	//unsorted octree array for map like efficiency
 	octree_t map_help[4096];
 	for(i=0;i<4096;i++)
 	{
 		map_help[i]=octree_level_4[i];
 	}
 
+	//sort array based on count
 	qsort(octree_level_4,4096,sizeof(octree_t),comparator);
 
 	for(i=0;i<128;i++)
@@ -603,6 +613,8 @@ read_photo (const char* fname)
 		{
 			green=green + (octree_level_4[4095-i].green/(2*count));
 		}
+		//green=green/count
+
 		int blue=val & 0xF;
 		blue=(blue<<1);
 		if(octree_level_4[4095-i].blue >=count)
@@ -611,10 +623,12 @@ read_photo (const char* fname)
 		}
 		//blue=blue/count;
 
-		p->palette[i][0]=(red<<1);
-		p->palette[i][1]=green;
-		p->palette[i][2]=(blue<<1);
+		p->palette[i][0]=(red<<1);//push red values in palette according to calculated average
+		p->palette[i][1]=green;//push green values in palette according to calculated average
+		p->palette[i][2]=(blue<<1);//push blue values in palette according to calculated average
 	}
+
+	//initialise level_2 octree array to 0
 	for(i=0;i<64;i++)
 	{
 		octree_level_2[i].index=i;
@@ -624,6 +638,7 @@ read_photo (const char* fname)
 		octree_level_2[i].count=0;
 	}
 
+	//fill level_2 array using level_4 sorted array
 	for(i=128;i<4096;i++)
 	{
 		int temp;
@@ -658,7 +673,7 @@ read_photo (const char* fname)
 				red*=count;
 			}
 			
-
+			//update pixel into octree level_2 which is in the lower 3969 level4 values
 			octree_level_2[ind2].red=red+octree_level_4[4095-i].red;
 			octree_level_2[ind2].green=green+octree_level_4[4095-i].green;
 			octree_level_2[ind2].blue=blue+octree_level_4[4095-i].blue;
@@ -683,6 +698,7 @@ read_photo (const char* fname)
 			green=green+octree_level_4[4095-i].green;
 			blue=blue+octree_level_4[4095-i].blue;
 
+			//update pixel into octree level_2 which is in the lower 3969 level4 values
 			octree_level_2[ind2].red=red+octree_level_2[ind2].red;
 			octree_level_2[ind2].green=green+octree_level_2[ind2].green;
 			octree_level_2[ind2].blue=blue+octree_level_2[ind2].blue;
@@ -690,6 +706,7 @@ read_photo (const char* fname)
 		}
 	}
 
+	//fill level_2 palette using averages in level2 nodes
 	for(i=0;i<64;i++)
 	{
 		int red_ind=(i>>4);
@@ -728,6 +745,7 @@ read_photo (const char* fname)
 
 		}
 		
+		//fill level 2 palette of last 64 values
 		p->palette[128+i][0]=red_ind;
 		p->palette[128+i][1]=green_ind;
 		p->palette[128+i][2]=blue_ind;
@@ -737,6 +755,7 @@ read_photo (const char* fname)
 	// p->palette[1][1]=0x00;
 	// p->palette[1][2]=0x00;
 
+	//reset file pointer to start of file
 	fseek(in,0,SEEK_SET);
 	
 	for (y = p->hdr.height; y-- > 0; ) {
@@ -755,7 +774,10 @@ read_photo (const char* fname)
 		return NULL;
 	    }
 
+		//find index of pixel to check if it is level4 top 128 nodes
 		int index = pixelintooctree(pixel,1);
+
+		//Lowest count of level4 that is in top 128 for comparison
 		int count= octree_level_4[4095-128].count;
 
 		
@@ -781,6 +803,7 @@ read_photo (const char* fname)
 			{
 				if(octree_level_4[4095-i].index==index)
 				{
+					//map pixel to level_4 corresponding value
 					p->img[p->hdr.width * y + x -2]=64+i;
 					break;
 				}
@@ -800,6 +823,7 @@ read_photo (const char* fname)
 
 			int index= red+blue+green;
 
+			//map pixel to level_2 corresponding value
 			p->img[p->hdr.width * y + x -2]=index+192;
 		}
 }

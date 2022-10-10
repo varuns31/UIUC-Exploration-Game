@@ -68,9 +68,9 @@
 /* stores original terminal settings */
 static struct termios tio_orig;
 
-int fd;
+int fd;//struct_tty
 
-int flag;
+int flag;//flag for seeing ABC values aren't spammed
 
 
 /* 
@@ -282,25 +282,25 @@ get_command ()
 	switch(pressed)
 	{
 
-	case 0xff:pushed == CMD_NONE;flag=1;break;
+	case 0xff:pushed == CMD_NONE;flag=1;break;//Active Low condition with nothing pushed
 
-	case 0xfe:pushed = CMD_QUIT;break;
+	case 0xfe:pushed = CMD_QUIT;break;//Active Low condition with start pushed
 
-	case 0xfd:if(flag!=0){pushed = CMD_MOVE_LEFT;flag=0;}break;
+	case 0xfd:if(flag!=0){pushed = CMD_MOVE_LEFT;flag=0;}break;//Active Low condition with insert pushed
 
-	case 0xfb:if(flag!=0){pushed =CMD_ENTER;flag=0;}break;
+	case 0xfb:if(flag!=0){pushed =CMD_ENTER;flag=0;}break;//Active Low condition with home pushed
 
-	case 0xf7:if(flag!=0){pushed = CMD_MOVE_RIGHT;flag=0;}break;
+	case 0xf7:if(flag!=0){pushed = CMD_MOVE_RIGHT;flag=0;}break;//Active Low condition with pgup pushed
 
-	case 0xef:pushed=CMD_UP;flag=1;break;
+	case 0xef:pushed=CMD_UP;flag=1;break;//Active Low condition with up arrow pushed
 
-	case 0xdf:pushed=CMD_DOWN;flag=1;break;
+	case 0xdf:pushed=CMD_DOWN;flag=1;break;//Active Low condition with down arrow pushed
 
-	case 0xbf:pushed=CMD_LEFT;flag=1;break;
+	case 0xbf:pushed=CMD_LEFT;flag=1;break;//Active Low condition with left arrow pushed
 
-	case 0x7f:pushed=CMD_RIGHT;flag=1;break;
+	case 0x7f:pushed=CMD_RIGHT;flag=1;break;//Active Low condition with right arrow pushed
 
-	default:pushed == CMD_NONE;flag=1;break;
+	default:pushed == CMD_NONE;flag=1;break;//Active Low condition with nothing pushed
 
 	}
 
@@ -335,6 +335,7 @@ void init_tux()
 	fd=open("/dev/ttyS0", O_RDWR | O_NOCTTY);
 	int ldisc_num = N_MOUSE;
 	ioctl(fd, TIOCSETD, &ldisc_num);
+	//initialised tux
 	ioctl(fd,TUX_INIT);
 	printf("TUX INITIALISED");
 	flag=1;
@@ -358,7 +359,7 @@ display_time_on_tux (int num_seconds)
 	int mins=num_seconds/60;
 	int ans;
 	int i;
-	int arg = 0x04070000;
+	int arg = 0x04070000;//mask last LED and display decimal before seconds value
 	i=0;
 	while(secs>0)
 	{
@@ -369,7 +370,7 @@ display_time_on_tux (int num_seconds)
 		i++;
 	}	
 	arg=arg+(mins<<8);
-	//arg=arg+num_seconds;
+	//arg=arg+num_seconds+minutes;
 	ioctl(fd,TUX_SET_LED,arg);
 
 //#error "Tux controller code is not operational yet."

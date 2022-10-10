@@ -190,8 +190,8 @@ static int show_x, show_y;          /* logical view coordinates     */
 /* displayed video memory variables */
 static unsigned char* mem_image;    /* pointer to start of video memory */
 static unsigned short target_img;   /* offset of displayed screen image */
-static unsigned short statusbar_img;
-unsigned char status_buffer[4][STATUSBAR_PLANE_SIZE];
+static unsigned short statusbar_img;  /* offset of displayed status_bar image */
+unsigned char status_buffer[4][STATUSBAR_PLANE_SIZE]; //statusbar buffer that contains all mapping of pixels
 
 
 /* 
@@ -311,8 +311,9 @@ set_mode_X (void (*horiz_fill_fn) (int, int, unsigned char[SCROLL_X_DIM]),
     }
 
     /* One display page goes at the start of video memory. */
-    target_img = 5760; 
-    statusbar_img=0;
+
+    target_img = 5760; // 18*320 gives value of memory after status bar is finished
+    statusbar_img=0; // starts at memory location 0.
 
     /* Map video memory and obtain permission for VGA port access. */
     if (open_memory_and_ports () == -1)
@@ -897,10 +898,10 @@ fill_palette_mode_x ()
 
 void copypalletetoVGA(uint8_t* pallette)
 {
-     /* Start writing at color 0. */
+     /* Start writing at color 64. */
     OUTB (0x03C8, 0x40);
 
-    /* Write all 64 colors from array. */
+    /* Write all 192 colors from array. */
     REP_OUTSB (0x03C9, pallette, 192 * 3);
 }
 
@@ -1161,7 +1162,7 @@ show_status_bar (char room_name[],char typed_string[],char status_str[])
     /* Draw to each plane in the video memory. */
     for(i=0;i<4;i++)
     {
-        SET_WRITE_MASK (1 << (i+8));
+        SET_WRITE_MASK (1 << (i+8)); // shift 1 by plane + 8
 	    copy_status_bar(status_buffer[i],statusbar_img);
     }
 }

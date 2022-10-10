@@ -26,11 +26,11 @@
 #include "tuxctl-ioctl.h"
 #include "mtcp.h"
 
-extern char tux_buffer[6];
-extern char tux_buffer_reset[6];
+extern char tux_buffer[6];//tux local buffer
+extern char tux_buffer_reset[6];//tux local reset buffer
 extern unsigned char* mem_packet; 
-extern unsigned char button[2];
-int flag=1;
+extern unsigned char button[2];//global var with buttons
+int flag=1;//ack flag
 
 char hex_values[2][16]=
 {
@@ -67,7 +67,7 @@ void tuxctl_handle_packet (struct tty_struct* tty, unsigned char* packet)
 
 	if(a==MTCP_ACK)
 	{
-		flag=1;
+		flag=1;//allow additions to buffer
 		return;
 	}
 	if(a==MTCP_RESET)
@@ -82,7 +82,7 @@ void tuxctl_handle_packet (struct tty_struct* tty, unsigned char* packet)
 		init_buffer[1]=MTCP_LED_USR;
 		init_buffer[2]= MTCP_DBG_OFF;
 		tuxctl_ldisc_put(tty,init_buffer, 3);
-		tuxctl_ldisc_put(tty,tux_buffer, 6);
+		tuxctl_ldisc_put(tty,tux_buffer, 6);//fill buffer wuth previous buffer values 
 		return;
 	}
     //printk("packet : %x %x %x\n", a, b, c); */
@@ -127,8 +127,8 @@ int tuxinitialise(struct tty_struct* tty)
 	// init_buffer[5]= 0xff;
 	// init_buffer[6]= 0xff;
 	// init_buffer[7]= 0xff;
-	button[0]=0xF;
-	button[1]=0xF;
+	button[0]=0xF;//set buttons to all high
+	button[1]=0xF;//set buttons to all high
 	tuxctl_ldisc_put(tty, init_buffer, 3);
 	//printk("SET LED SHOULD WORK");
 	return 0;
@@ -165,12 +165,12 @@ int set_button(struct tty_struct* tty,unsigned long arg)
 
 
 	button_val=(button_val<<4);
-	button_val+=(button[0] & 0xF);
-	temp=__copy_to_user ((uint8_t*)arg,(& button_val),1);
+	button_val+=(button[0] & 0xF);//update button value according to required value to be sent
+	temp=__copy_to_user ((uint8_t*)arg,(& button_val),1);//put value in argument passed pointer from user
 	//unsigned long temp=0;
 	if(temp>0)
 	{
-		return -EINVAL;
+		return -EINVAL;//error in copy to user
 	}
 	else
 	return 0;
@@ -225,38 +225,38 @@ int set_led_func(struct tty_struct* tty,unsigned long arg)
 
 	if(decimals[0]>0)
 	{
-		first_entry=hex_values[1][first];
+		first_entry=hex_values[1][first];//value for led1 set
 	}
 	else
 	{
-		first_entry=hex_values[0][first];
+		first_entry=hex_values[0][first];//value for led1 set
 	}
 
 	if(decimals[1]>0)
 	{
-		second_entry=hex_values[1][second];
+		second_entry=hex_values[1][second];//value for led2 set
 	}
 	else
 	{
-		second_entry=hex_values[0][second];
+		second_entry=hex_values[0][second];//value for led2 set
 	}
 
 	if(decimals[2]>0)
 	{
-		third_entry=hex_values[1][third];
+		third_entry=hex_values[1][third];//value for led3 set
 	}
 	else
 	{
-		third_entry=hex_values[0][third];
+		third_entry=hex_values[0][third];//value for led3 set
 	}
 
 	if(decimals[3]>0)
 	{
-		fourth_entry=hex_values[1][fourth];
+		fourth_entry=hex_values[1][fourth];//value for led4 set
 	}
 	else
 	{
-		fourth_entry=hex_values[0][fourth];
+		fourth_entry=hex_values[0][fourth];//value for led4 set
 	}
 
 	masking=arg & 0xF0000;
@@ -267,7 +267,7 @@ int set_led_func(struct tty_struct* tty,unsigned long arg)
 		first_entry=0;
 		if(decimals[0]>0)
 		{
-			first_entry=0x10;
+			first_entry=0x10;//mask led 1 has decimal
 		}
 	}
 	if((masking & 0x2)==0)
@@ -275,7 +275,7 @@ int set_led_func(struct tty_struct* tty,unsigned long arg)
 		second_entry=0;
 		if(decimals[1]>0)
 		{
-			second_entry=0x10;
+			second_entry=0x10;//mask led 2 has decimal
 		}
 	}
 	if((masking & 0x4)==0)
@@ -283,7 +283,7 @@ int set_led_func(struct tty_struct* tty,unsigned long arg)
 		third_entry=0;
 		if(decimals[2]>0)
 		{
-			third_entry=0x10;
+			third_entry=0x10;//mask led 3 has decimal
 		}
 	}
 	if((masking & 0x8)==0)
@@ -291,7 +291,7 @@ int set_led_func(struct tty_struct* tty,unsigned long arg)
 		fourth_entry=0;
 		if(decimals[3]>0)
 		{
-			fourth_entry=0x10;
+			fourth_entry=0x10;//mask led 4 has decimal
 		}
 	}
 
@@ -309,11 +309,11 @@ int set_led_func(struct tty_struct* tty,unsigned long arg)
 
 	for(i=0;i<6;i++)
 	{
-		tux_buffer_reset[i]=tux_buffer[i];
+		tux_buffer_reset[i]=tux_buffer[i];//fill reset buffer with prev buffer values
 	}
 
 	tuxctl_ldisc_put(tty,tux_buffer,6);
-	flag=0;
+	flag=0;//don't allow additon to tux buffer
 
 	return 0;
 }
