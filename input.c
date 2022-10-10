@@ -357,10 +357,18 @@ display_time_on_tux (int num_seconds)
 {
 	int secs=num_seconds%60;
 	int mins=num_seconds/60;
-	int ans;
+	int ans=0;
 	int i;
 	int arg = 0x04070000;//mask last LED and display decimal before seconds value
 	i=0;
+	if(mins>=10)
+	{
+		ans=mins/10;
+		mins=mins%10;
+		arg=arg + 0x80000;
+		arg=arg + (ans<<12);
+		arg=arg & 0xfffff0ff;
+	}
 	while(secs>0)
 	{
 		ans=secs%10;
@@ -370,7 +378,9 @@ display_time_on_tux (int num_seconds)
 		i++;
 	}	
 	arg=arg+(mins<<8);
-	//arg=arg+num_seconds+minutes;
+
+	
+	
 	ioctl(fd,TUX_SET_LED,arg);
 
 //#error "Tux controller code is not operational yet."
