@@ -174,29 +174,9 @@ typed_a_char (char c)
 cmd_t 
 get_tux_command ()
 {
-	#if (USE_TUX_CONTROLLER == 0) 
-#endif
     static cmd_t command = CMD_NONE;
     cmd_t pushed = CMD_NONE;
-    int ch;
-
-    /* Read all characters from stdin. */
-    while ((ch = getc (stdin)) != EOF) {
-
-	/* Backquote is used to quit the game. */
-	if (ch == '`')
-	    return CMD_QUIT;
-	
-
-	/* Tux controller mode; still need to support typed commands. */
-	if (valid_typing (ch)) {
-	    typed_a_char (ch);
-	} else if (10 == ch || 13 == ch) {
-	    pushed = CMD_TYPED;
-	}
-}
-
-
+   
 	uint8_t pressed;
 	ioctl(fd,TUX_BUTTONS,&pressed);
 	switch(pressed)
