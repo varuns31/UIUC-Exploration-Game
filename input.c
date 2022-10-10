@@ -70,6 +70,8 @@ static struct termios tio_orig;
 
 int fd;
 
+int flag;
+
 
 /* 
  * init_input
@@ -270,8 +272,39 @@ get_command ()
 	} else if (10 == ch || 13 == ch) {
 	    pushed = CMD_TYPED;
 	}
+
 #endif /* USE_TUX_CONTROLLER */
-    }
+}
+
+	if(USE_TUX_CONTROLLER!=0)
+	{
+		uint8_t pressed;
+		ioctl(fd,TUX_BUTTONS,&pressed);
+		switch(pressed)
+		{
+		case 0xff:pushed == CMD_NONE;flag=1;break;
+
+		case 0xfe:pushed = CMD_QUIT;break;
+
+		case 0xfd:if(flag!=0){pushed = CMD_MOVE_LEFT;flag=0;}break;
+
+		case 0xfb:if(flag!=0){pushed =CMD_ENTER;flag=0;}break;
+
+		case 0xf7:if(flag!=0){pushed = CMD_MOVE_RIGHT;flag=0;}break;
+
+		case 0xef:pushed=CMD_UP;flag=1;break;
+
+		case 0xdf:pushed=CMD_DOWN;flag=1;break;
+
+		case 0xbf:pushed=CMD_LEFT;flag=1;break;
+
+		case 0x7f:pushed=CMD_RIGHT;flag=1;break;
+
+		default:pushed == CMD_NONE;flag=1;break;
+		}
+	}
+	
+
 
     /*
      * Once a direction is pushed, that command remains active
@@ -306,6 +339,7 @@ void init_tux()
 	ioctl(fd, TIOCSETD, &ldisc_num);
 	ioctl(fd,TUX_INIT);
 	printf("TUX INITIALISED");
+	flag=1;
 	// int arg = 0x04039869;
 	// ioctl(fd,TUX_SET_LED,arg);
 }
