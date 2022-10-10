@@ -101,7 +101,14 @@ void tuxctl_handle_packet (struct tty_struct* tty, unsigned char* packet)
  * valid.                                                                     *
  *                                                                            *
  ******************************************************************************/
-
+/* 
+ * tuxinitialise 
+ *   DESCRIPTION: Initialises the tux to enable interrupts and led user mode
+ *   INPUTS: struct tty_struct* tty
+ *   OUTPUTS: none
+ *   RETURN VALUE: 0 
+ *   SIDE EFFECTS: changes tux buffer
+ */
 int tuxinitialise(struct tty_struct* tty)
 {
 	int i=0;
@@ -127,6 +134,15 @@ int tuxinitialise(struct tty_struct* tty)
 	return 0;
 }
 
+
+/* 
+ * tuxinitialise 
+ *   DESCRIPTION: manipulates packet from buffer and copies value to user 
+ *   INPUTS: struct tty_struct* tty, arg from user to copy information
+ *   OUTPUTS: none
+ *   RETURN VALUE: 0 
+ *   SIDE EFFECTS: changes tux buffer
+ */
 int set_button(struct tty_struct* tty,unsigned long arg)
 {
 	uint8_t button_val;
@@ -160,6 +176,14 @@ int set_button(struct tty_struct* tty,unsigned long arg)
 	return 0;
 }
 
+/* 
+ * set_led_func 
+ *   DESCRIPTION: updates tux buffer with set led opcode and required values to print LEDs according to argument
+ *   INPUTS: struct tty_struct* tty, arg from user to display
+ *   OUTPUTS: none
+ *   RETURN VALUE: 0 
+ *   SIDE EFFECTS: changes tux buffer
+ */
 int set_led_func(struct tty_struct* tty,unsigned long arg)
 {
 	
@@ -179,7 +203,7 @@ int set_led_func(struct tty_struct* tty,unsigned long arg)
 	{
 		return 0;
 	}
-	
+
 	first=arg & 0xF;
 	second=arg & 0xF0;
 	third=arg & 0xF00;

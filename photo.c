@@ -96,12 +96,30 @@ typedef struct {
 octree_t octree_level_4[4096];
 octree_t octree_level_2[64];
 
+
+/* 
+ * comparator
+ *   DESCRIPTION: compare values in a struct by frequency
+ *   INPUTS: void pointers to be compared
+ *   OUTPUTS: none
+ *   RETURN VALUE: difference of two values
+ *   SIDE EFFECTS: assists qsort to sort the octree array
+ */
 int comparator(const void* a,const void*b)
 {
     octree_t* anew = (octree_t*) a;
     octree_t* bnew = (octree_t*) b;
     return anew->count - bnew->count;
 }
+
+/* 
+ * pixelintooctree
+ *   DESCRIPTION: puts pixel into a level 4 octree node or finds pixel in index according to mode.
+ *   INPUTS: value of pixel and mode (a=0 is put in octree mode , a=1 means find index mode)
+ *   OUTPUTS: none
+ *   RETURN VALUE: index of pixel in octree_level_4 array
+ *   SIDE EFFECTS: added values to global octree_level_4 array
+ */
 int pixelintooctree(u_int16_t num,int a)
 {
     int index;

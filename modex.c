@@ -884,6 +884,17 @@ fill_palette_mode_x ()
     REP_OUTSB (0x03C9, palette_RGB, 64 * 3);
 }
 
+
+/*
+ * copypalletetoVGA
+ *   DESCRIPTION: Fill VGA palette with necessary colors for the adventure 
+ *                game.  Only the last 192 (of 256) colors are written.
+ *   INPUTS: pallete to be inserted
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: changes the last 192 palette colors
+ */   
+
 void copypalletetoVGA(uint8_t* pallette)
 {
      /* Start writing at color 0. */
